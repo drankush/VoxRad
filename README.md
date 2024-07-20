@@ -84,7 +84,7 @@ For any questions or support, please contact [Dr. Ankush](mailto:voxrad@drankush
 
 - [Groq](https://groq.com) for providing API for Whisper-large-v3 voice-to-text model and LLaMA3-70b-8192 and other LLMs.
 
-## 🚨 Disclaimer
+## Disclaimer 🚨
 
 This is a pure demonstrative application for the capabilities of AI and may not be compliant with local regulations of handling sensitive and private data. This is not intended for any diagnostic and clinical use. Please read the terms of use of the API keys that you will be using.
 
