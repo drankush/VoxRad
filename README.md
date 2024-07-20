@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="voxrad_mac_logo.png" alt="VOXRAD Logo" />
+</p>
 
 # VOXRAD 🚀
 
