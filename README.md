@@ -77,8 +77,17 @@ This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) fi
 
 For any questions or support, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
 
-  
-
 ## Acknowledgments 🙏
 
 - [Groq](https://groq.com) for providing API for Whisper-large-v3 voice-to-text model and LLaMA3-70b-8192 and other LLMs.
+
+## 🚨 Disclaimer
+
+This is a pure demonstrative application for the capabilities of AI and may not be compliant with local regulations of handling sensitive and private data. This is not intended for any diagnostic and clinical use. Please read the terms of use of the API keys that you will be using.
+
+- The application is not intended to replace professional medical advice, diagnosis, or treatment.
+- Users must ensure they comply with all relevant local laws and regulations when using the application, especially concerning data privacy and security.
+- The developers are not responsible for any misuse of the application or any data breaches that may occur.
+- The application does not encrypt data by default; users must take additional steps to secure their data.
+- Always verify the accuracy of the transcriptions and generated reports manually.
+
