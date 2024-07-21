@@ -42,7 +42,7 @@ To install VOXRAD, follow these steps:
 
 - Click and choose the working directory. Here your encrypted keys, templates, and last recorded audio file will be kept.
 
-- There is a **Templates** folder that you can open by clicking the button **Open Templates Folder** in the General tab of settings. Here you can place `.txt` and `.md` template instruction files for various reports like HRCT Thorax, CECT Abdomen. Do trial and error to figure out how much instruction is required for your desired performance by the chosen model. You can download sample templates from the template folder of this repository.
+- There is a **Templates** folder that you can open by clicking the button **Open Templates Folder** in the General tab of settings. Here you can place `.txt` and `.md` template instruction files for various reports like HRCT Thorax, CECT Abdomen. Do trial and error to figure out how much instruction is required for your desired performance by the chosen model. You can download sample templates from the [templates](https://github.com/drankush/voxrad/tree/main/templates) folder of this repository.
 
 - You can insert a dictionary of words separated by commas between `[correct spellings] word1, word2, word3 [correct spellings]` inside your template `.txt` and `.md` files. These will be extracted and passed to the voice model to focus on specific words that can be mistaken.
 
