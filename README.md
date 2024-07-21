@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="voxrad_mac_logo.png" alt="VOXRAD Logo" />
+  <img src="images/voxrad_logo.jpg" alt="VOXRAD Logo" />
 </p>
 
 # VOXRAD 🚀
