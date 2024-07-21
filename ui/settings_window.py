@@ -162,7 +162,7 @@ def open_settings():
     tab_control.add(help_tab, text="💡 Help")
 
     read_docs_button = tk.Button(help_tab, text="Read VOXRAD Docs",
-                                 command=lambda: open_url("https://drankush.com/voxrad"))
+                                 command=lambda: open_url("https://github.com/drankush/voxrad/"))
     read_docs_button.pack(pady=20)
 
 
@@ -190,7 +190,7 @@ def open_settings():
     ✉️ voxrad@drankush.com
 
     License:
-    MIT
+    GPTv3
     """
     about_label = tk.Label(about_tab, text=about_text, justify="left")
     about_label.pack(pady=10, padx=10)
