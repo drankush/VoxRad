@@ -39,5 +39,5 @@ def transcribe_audio(mp3_path):
             pyperclip.copy(stripped_text)
             update_status("Your report is ready.✨")
         except Exception as e:
-            update_status(f"Error during transcription or restructuring/formatting the report: {e}")
+            update_status(f"Some error ocurred. Please check both API keys are saved and/or network connection.")
             print(f"Error details: {e}")
