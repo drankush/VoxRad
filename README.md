@@ -27,6 +27,7 @@ This application leverages the power of generative AI to efficiently transcribe 
 - 🤖 Integration with large language models
 
 - ⚙️ Customizable templates
+- 📈 Potential to extend the application for dictating other structured notes (discharge notes, OT notes or legal paperwork)
 
 
 ## Installation 💻
@@ -76,6 +77,10 @@ Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTIN
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
+## Support 🐞
+
+To report and bugs or issues, please follow this guide on [how to report bugs.](https://github.com/drankush/voxrad/issues).
+
 ## Contact 📧
 
 For any questions or support, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
@@ -90,6 +95,7 @@ This is a pure demonstrative application for the capabilities of AI and may not 
 
 - The application is not intended to replace professional medical advice, diagnosis, or treatment.
 - Users must ensure they comply with all relevant local laws and regulations when using the application, especially concerning data privacy and security.
+- Users are advised to locally host voice transcription and text models and use its endpoints for sensitive data.
 - The developers are not responsible for any misuse of the application or any data breaches that may occur.
 - The application does not encrypt data by default; users must take additional steps to secure their data.
 - Always verify the accuracy of the transcriptions and generated reports manually.
