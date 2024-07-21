@@ -190,7 +190,7 @@ def open_settings():
     ✉️ voxrad@drankush.com
 
     License:
-    GPTv3
+    GPLv3
     """
     about_label = tk.Label(about_tab, text=about_text, justify="left")
     about_label.pack(pady=10, padx=10)
