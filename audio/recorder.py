@@ -20,7 +20,7 @@ def record_audio():
     global recording, recording_thread
     print(f"GROQ API Key from recorder.py: {config.GROQ_API_KEY}")
     if config.GROQ_API_KEY is None:
-        update_status("Please set your Transcription Model API key in settings.")
+        update_status("Please set your Transcription and Text Model API keys in settings.")
         return
     recording = True
     from ui.main_window import record_button, stop_button, canvas, root  # Import additional global variables
