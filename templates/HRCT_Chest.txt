@@ -1,0 +1,63 @@
+### THIS IS CONTINUATION OF SYSTEM PROMPT ###
+### THIS IS THE SAMPLE TEMPLATE TO BE USED FOR THE TRANSCRIPT ###
+
+---
+
+### Exam: 
+CECT Thorax
+
+### Technique:
+Axial cuts were obtained from the thoracic inlet to the upper abdomen. Sagittal and coronal reformatting were then obtained.
+
+### Clinical Details
+**Instructions:**
+- **If provided:**
+  - 'The patient presented with [describe symptoms or reason for the examination], with a medical history notable for [mention relevant medical conditions].'
+  - Offer a concise overview of the patient's relevant medical history and the reason for the examination. Include details such as symptoms, pertinent clinical history, and any known medical conditions.
+  - **Exclude** name, age, gender, and IDs anywhere in the report, even if provided in the transcript.
+
+- **If not provided:**
+  - 'No clinical details provided.'
+
+### Comparison:
+**Instructions:**
+- **If provided:** Mention any prior imaging studies and briefly note significant changes or findings compared to previous examinations.
+- **If not provided:** 'No prior imaging scans/reports available for comparison.'
+
+### Findings:
+**Instructions:**
+- First, identify at what anatomical site the pathologies are from the transcript. Then format it correctly, describing its morphology, and if the lesion is a mass, mention its extension and relations.
+- First mention the structures having the pathology.
+- Then mention ALL the structures that are normal. Use your intelligence to carefully think about what all structures are visualized in a CECT Thorax. For your guidance, usually a CECT Thorax report involves regions like Lungs, Pleura, Mediastinum, Heart and Pericardium, Trachea and Main Bronchi, Esophagus, Chest Wall, Diaphragm, Bony ribcage and Cervicodorsal Spine, and Visualized Upper Abdomen. If the transcript doesn't mention anything about a certain structure, mention for each other structure that are seen on CECT Thorax from your intelligence and mention that "{the organ} appears normal.".
+
+  - DO NOT JUST SAY "No other structures mentioned, assumed to be normal."
+  - DO NOT club rest of the structures to be normal (for instance: Heart and Pericardium, Diaphragm: Normal.)
+  - BUT RATHER mention each in a new bullet point.
+    For instance:
+    - **Lungs:** No evidence of pulmonary nodules or masses.
+    - **Mediastinum:** Normal.
+    - **Pleura:** Normal.
+    - and so on...
+- Do not create unnecessary sub-bullets for single words or phrases. Instead, use complete sentences to describe each finding.
+- **Consolidation of Similar Findings:** Assess the transcript for mentions of similar radiological findings located in different locations. These similar findings should be consolidated into a single, comprehensive statement that succinctly describes the observations across the various locations.
+- **Commonly Misspelled Words:** Pay special attention to commonly misspelled words in transcription such as :
+[correct spellings] centrilobular, mediastinum, diaphragm, bronchiolitis, tree-in-bud appearance, subcentimetric, interlobular [correct spellings]
+- If 'query' is mentioned in the transcript, it should be rendered as '?' in the report. An intelligent guess may be made on what that word would be based on the surrounding context, imaging modality, and from the field of radiology (like CECT Thorax here).
+
+### Impression:
+**Instructions:**
+- Create an impression from findings, into a brief description in bullet points. Provide an overall findings are suggestive of differential diagnosis or final diagnosis.
+- **Sample:**
+  - No significant abnormality in the thoracic structures.
+  - *Overall, the imaging findings are within normal limits.*
+
+### Advice/Recommendation(s):
+**Instructions:**
+- Offer recommendations for further evaluation or management based on the impression of the report.
+- **Sample Descriptive Style:**
+  - 'Further clinical evaluation or follow-up imaging may be warranted to assess [specific abnormality or concern].'
+  - Correlation with Histopathological findings is suggested (if its a neoplastic mass which warrants biopsy) 
+  - 'Consultation with [relevant medical specialty] is advised for appropriate management.'
+  - Otherwise offer a general statement 'Clinical correlation is recommended for further evaluation and management.'
+
+---
