@@ -79,11 +79,11 @@ This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) fi
 
 ## Support 🐞
 
-To report and bugs or issues, please follow this guide on [how to report bugs.](https://github.com/drankush/voxrad/issues).
+To report bugs or issues, please follow [this guide](https://github.com/drankush/voxrad/blob/main/contributing.md#reporting-bugs) on how to report bugs.
 
 ## Contact 📧
 
-For any questions or support, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
+For any other questions, support or appreciation, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
 
 ## Acknowledgments 🙏
 
