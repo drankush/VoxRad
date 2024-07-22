@@ -63,7 +63,7 @@ To install VOXRAD, follow these steps:
 
   - [OpenAI](https://platform.openai.com/docs/api-reference/introduction): ```https://api.openai.com/v1/```
   - [Gemini](https://github.com/PublicAffairs/openai-gemini): ```https://my-openai-gemini-henna.vercel.app/v1```
-    ❗️Cannot fetch models, model choice is set to Gemini-1.5-pro.
+    <br>❗️Cannot fetch models, model choice is set to Gemini-1.5-pro.</br>
   - [Groq](https://console.groq.com/docs/openai): ```https://api.groq.com/openai/v1```
   - [Ollama](https://ollama.com/blog/openai-compatibility): ```http://localhost:11434/v1```
       
