@@ -66,6 +66,7 @@ To install VOXRAD, follow these steps:
 ❗️Cannot fetch models, model choice is set to Gemini-1.5-pro.
   - [Groq](https://console.groq.com/docs/openai): ```https://api.groq.com/openai/v1```
   - [Ollama](https://ollama.com/blog/openai-compatibility): ```http://localhost:11434/v1```
+  - 
     
 
   Search github for repositories that support transforming your provider to OpenAI compatible API. Please deploy your   own instance. This way, you can keep your API key secure.
