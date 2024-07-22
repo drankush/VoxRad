@@ -69,7 +69,7 @@ To install VOXRAD, follow these steps:
       
     
 
-  Search github for repositories that support transforming your provider to OpenAI compatible API. Please deploy your   own instance. This way, you can keep your API key secure.
+  <br>Search github for repositories that support transforming your provider to OpenAI compatible API. Please deploy your   own instance. This way, you can keep your API key secure.</br>
   
   </details>
 
