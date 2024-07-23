@@ -70,7 +70,7 @@ def initialize_ui():
 
     # Center the bottom frame
     root.grid_columnconfigure(0, weight=1)
-    root.grid_rowconfigure(4, weight=1)
+    root.grid_rowconfigure(3, weight=1)
 
     # --- Template Dropdown ---
     global template_dropdown  # Declare as global to modify in functions
