@@ -18,6 +18,7 @@ def load_templates(template_dropdown):
         os.makedirs(template_dir)  # Create the templates directory if it doesn't exist
     template_files = [f for f in os.listdir(template_dir) if f.endswith((".txt", ".md"))]
     # print(f"Template files found: {template_files}")  # Debug: Print the list of template files
+    template_files.sort()  # Sort the list of template files alphabetically
     template_options = [os.path.splitext(f)[0].replace("_", " ") for f in template_files]
     update_template_dropdown(template_dropdown)
 
