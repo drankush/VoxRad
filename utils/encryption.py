@@ -37,7 +37,7 @@ def get_encryption_key(password, salt_filename=".myapp_salt"):
     key = urlsafe_b64encode(kdf.derive(password.encode()))
     return key
 
-def get_password_from_user(prompt):
+def get_password_from_user(prompt, flag):
     """Prompt the user to enter their password securely with error handling for incorrect entries."""
     class PasswordDialog(simpledialog.Dialog):
         def body(self, master):
@@ -59,7 +59,7 @@ def get_password_from_user(prompt):
             root.destroy()
             return None  # User cancelled the dialog
 
-        if is_password_correct(password):
+        if is_password_correct(password, flag):
             root.destroy()
             return password  # Correct password entered
 
@@ -74,9 +74,12 @@ def get_save_password_from_user(prompt):
     root.destroy()
     return password
 
-def is_password_correct(password):
+def is_password_correct(password, flag):
     """Function to check if the provided password is correct by attempting to decrypt the encrypted key file."""
-    return load_groq_key(password=password)
+    if flag == "groq":
+        return load_groq_key(password=password)
+    else:
+        return load_openai_key(password=password)
 
 def load_groq_key(key_file="groq_key.encrypted", password="default_password"):
     """Loads and decrypts the Groq API key from the encrypted file. Returns True if decryption is successful."""
