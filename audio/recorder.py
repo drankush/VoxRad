@@ -7,13 +7,15 @@ import os
 import subprocess
 from config.config import config  
 from audio.transcriber import transcribe_audio
-from ui.utils import update_status, simulate_waveform, draw_straight_line
+from ui.utils import update_status, simulate_waveform, draw_straight_line, stop_waveform_simulation, start_waveform_simulation
 
 # Global variables
 recording = False
+paused = False  # Add paused flag
 audio_data = None
 start_time = None
 recording_thread = None
+pause_event = threading.Event()
 
 def record_audio():
     """Starts audio recording after checking for Groq API key."""
@@ -23,16 +25,38 @@ def record_audio():
         update_status("Please set your Transcription and Text Model API keys in settings.")
         return
     recording = True
-    from ui.main_window import record_button, stop_button, canvas, root  # Import additional global variables
+    from ui.main_window import record_button, stop_button, pause_button, canvas, root  # Import additional global variables
     record_button['state'] = 'disabled'
     stop_button['state'] = 'normal'
+    pause_button['state'] = 'normal'  # Enable pause button
     recording_thread = threading.Thread(target=background_recording, daemon=True)
     recording_thread.start()
     update_status("Recording 🔴")
-    simulate_waveform(canvas, root)  # Start simulating the waveform
+    start_waveform_simulation(canvas, root)  # Start simulating the waveform
+
+def pause_audio():
+    global paused, pause_event
+    from ui.main_window import record_button, stop_button, pause_button, canvas, root  # Import additional global variables
+    if not paused:
+        paused = True
+        pause_event.clear()
+        pause_button.config(text="Resume")
+        record_button['state'] = 'disabled'
+        stop_button['state'] = 'disabled'
+        update_status("Paused ⏸️")
+        stop_waveform_simulation(canvas)  # Stop the waveform simulation
+        draw_straight_line(canvas)  # Clear the waveform when paused
+    else:
+        paused = False
+        pause_event.set()
+        pause_button.config(text="Pause")
+        record_button['state'] = 'disabled'
+        stop_button['state'] = 'normal'
+        update_status("Recording 🔴")
+        start_waveform_simulation(canvas, root)  # Resume waveform simulation
 
 def background_recording():
-    global audio_data, start_time, recording
+    global audio_data, start_time, recording, paused, pause_event
     fs = 44100  # Sample rate
     start_time = time.time()
 
@@ -49,6 +73,9 @@ def background_recording():
 
         # Record as long as recording is True
         while recording:
+            pause_event.wait()  # Wait while paused
+            if not recording:
+                break
             data, overflowed = stream.read(fs)  # Read data for 1 second
             if overflowed:
                 print("Audio buffer overflowed")
@@ -75,8 +102,12 @@ def background_recording():
 
 def stop_recording():
     global recording, audio_data, start_time, recording_thread
-    # print("stop_recording called") #Debug
+    print("stop_recording called")
     recording = False  # Signal to stop recording
+    pause_event.set()  # Ensure any waiting pause_event is released
+    from ui.main_window import pause_button, canvas  # Import additional global variables
+    pause_button['state'] = 'disabled'  # Disable pause button
+    stop_waveform_simulation(canvas)  # Stop the waveform simulation
     
     # Schedule a check to wait for the recording to finish non-blockingly
     from ui.main_window import root  # Import global variable
@@ -84,7 +115,7 @@ def stop_recording():
 
 def check_recording_finished():
     global recording_thread
-    # print("check_recording_finished called") #Debug
+    print("check_recording_finished called")
     from ui.main_window import root  # Import global variable
     if recording_thread.is_alive():
         # Check again after some time if the recording thread is still alive
@@ -102,9 +133,9 @@ def complete_stop_recording():
     from ui.main_window import record_button, stop_button, canvas  # Import additional global variables
     record_button['state'] = 'normal'
     stop_button['state'] = 'disabled'
-    # print("Before draw_straight_line(canvas)")
+    print("Before draw_straight_line(canvas)")
     draw_straight_line(canvas)
-    # print("After draw_straight_line(canvas)") #Debug
+    print("After draw_straight_line(canvas)")
 
     fs = 44100  # Sample rate used for recording
     if hasattr(audio_data, 'size') and audio_data.size > 0:
