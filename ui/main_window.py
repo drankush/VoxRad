@@ -22,6 +22,8 @@ stop_button = None
 pause_button = None  # Add pause_button
 template_dropdown = None 
 
+
+
 def initialize_ui():
     global root, canvas, record_button, stop_button, pause_button, template_dropdown, recording
 
@@ -31,71 +33,73 @@ def initialize_ui():
     root.geometry("250x300")
     root.resizable(width=False, height=False)
 
-    initialize_status_var(root)  # Initialize the status variable
+    # Main frame
+    main_frame = tk.Frame(root, bg='#0E1118')
+    main_frame.pack(fill=tk.BOTH, expand=True)
+    main_frame.grid_columnconfigure(0, weight=1)
+    main_frame.grid_rowconfigure(2, weight=1)  # Make the status area expandable
+
+
+    # Top frame (logo and buttons)
+    top_frame = tk.Frame(main_frame, bg='#0E1118')
+    top_frame.grid(row=0, column=0, sticky='ew')
+    top_frame.grid_columnconfigure(1, weight=1)  # Make buttons column expandable
 
     # Load and resize the logo image
     logo_image = Image.open('voxrad_mac_logo.png')
     logo_photo = ImageTk.PhotoImage(logo_image)
-    logo_label = tk.Label(root, image=logo_photo, bg='#0E1118')
-    logo_label.image = logo_photo  # Keep a reference to the image
-    logo_label.grid(column=0, row=0, sticky='ns', padx=10)
+    logo_label = tk.Label(top_frame, image=logo_photo, bg='#0E1118')
+    logo_label.image = logo_photo
+    logo_label.grid(column=0, row=0, sticky='nsw', padx=10)
 
-    # Frame for buttons
-    buttons_frame = tk.Frame(root, bg='#0E1118')
+    # Buttons frame
+    buttons_frame = tk.Frame(top_frame, bg='#0E1118')
     buttons_frame.grid(column=1, row=0, sticky='nsew', padx=(0, 10))
-
-    # Configure row heights to align with logo
-    logo_height = logo_photo.height()
-    button_height = logo_height // 3  # Adjust button height to fit three buttons equally
-
-    buttons_frame.rowconfigure([0, 1, 2], minsize=button_height)
+    buttons_frame.grid_columnconfigure(0, weight=1)
 
     # Buttons
+    button_height = logo_photo.height() // 3
     record_button = Button(buttons_frame, text="Record", command=record_audio, bg="lightblue", fg="black", height=button_height)
-    record_button.grid(column=0, row=0, sticky='ew', pady=(10, 0))  # Align with top of logo
-
+    record_button.grid(column=0, row=0, sticky='ew', pady=(10, 0))
     pause_button = Button(buttons_frame, text="Pause", command=pause_audio, bg="lightblue", fg="black", state='disabled', height=button_height)
-    pause_button.grid(column=0, row=1, sticky='ew', pady=(10, 0))  # Align in the middle
-
+    pause_button.grid(column=0, row=1, sticky='ew', pady=(10, 0))
     stop_button = Button(buttons_frame, text="Stop", command=stop_recording, bg="lightblue", fg="black", state='disabled', height=button_height)
-    stop_button.grid(column=0, row=2, sticky='ew', pady=(10, 0))  # Align with bottom of logo
+    stop_button.grid(column=0, row=2, sticky='ew', pady=(10, 0))
 
-    # Canvas for the waveform adjusted to fill the width
-    canvas = tk.Canvas(root, width=root.winfo_width(), height=100, bg='#0E1118', highlightthickness=0)
-    canvas.grid(column=0, row=3, columnspan=2, sticky='ew', padx=25, pady=(5, 10))
+    # Initialize status variable
+    initialize_status_var(main_frame)
+
+    # Frame for waveform
+    waveform_frame = tk.Frame(main_frame, bg='#0E1118')
+    waveform_frame.grid(row=2, column=0, sticky='nsew', padx=10, pady=5)
+    waveform_frame.grid_columnconfigure(0, weight=1)
+    waveform_frame.grid_rowconfigure(0, weight=1)
+
+    # Canvas for waveform
+    canvas = tk.Canvas(waveform_frame, height=50, bg='#0E1118', highlightthickness=0)
+    canvas.grid(row=0, column=0, sticky='nsew')
     draw_straight_line(canvas)
 
-    # Ensure the widgets do not cover each other and canvas fills the width
-    root.columnconfigure(0, weight=1)
-    root.rowconfigure(3, weight=1)
+    # Bottom frame (fixed at the bottom)
+    bottom_frame = tk.Frame(main_frame, bg='#0E1118')
+    bottom_frame.grid(row=3, column=0, sticky='ew', pady=(0, 10))
+    bottom_frame.grid_columnconfigure(0, weight=1)
 
-    # Create a frame to hold the combobox and settings button
-    bottom_frame = tk.Frame(root, bg='#0E1118')
-    bottom_frame.grid(row=4, column=0, columnspan=2, sticky='ew', pady=(0, 10))
-
-    # Center the bottom frame
-    root.grid_columnconfigure(0, weight=1)
-    root.grid_rowconfigure(4, weight=1)
-
-    # --- Template Dropdown ---
-    global template_dropdown  # Declare as global to modify in functions
-    template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly", width=20)
-    template_dropdown.grid(row=0, column=0, padx=(0, 5))
+    # Template Dropdown
+    global template_dropdown
+    template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
+    template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
     template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, template_dropdown))
-    # --- End of Template Dropdown ---
 
     # Settings Button
     settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=2, height=1)
-    settings_button.grid(row=0, column=1)
+    settings_button.grid(row=0, column=1, padx=(0, 10))
 
-    # Center the contents of the bottom frame
-    bottom_frame.grid_columnconfigure(0, weight=1)
-    bottom_frame.grid_columnconfigure(1, weight=1)
-
-    # Load templates and update dropdown after creating template_dropdown
+    # Load templates
     load_templates(template_dropdown)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     initialize_ui()
