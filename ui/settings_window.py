@@ -30,7 +30,7 @@ def open_settings():
     dir_entry.grid(row=0, column=1, padx=5, pady=5)
 
     def browse_directory():
-        global template_dropdown 
+        global template_dropdown
         directory = filedialog.askdirectory()
         if directory:
             old_directory = config.save_directory
@@ -39,6 +39,7 @@ def open_settings():
             save_settings()  # Save settings using self
             if old_directory:
                 move_files(old_directory, config.save_directory)
+            load_templates(template_dropdown)  # Pass template_dropdown
 
     browse_button = tk.Button(general_tab, text="Browse", command=browse_directory)
     browse_button.grid(row=0, column=2, padx=5, pady=5)
@@ -65,13 +66,40 @@ def open_settings():
     groq_key_label = tk.Label(transcription_tab, text="Groq API Key:")
     groq_key_label.grid(row=0, column=0, padx=5, pady=5)
     groq_key_var = tk.StringVar(transcription_tab)
-    groq_key_entry = tk.Entry(transcription_tab, textvariable=groq_key_var, show="*", width=30)
+    groq_key_entry = tk.Entry(transcription_tab, textvariable=groq_key_var, show="*", width=30, state="normal")  # Enable entry by default
+
+    # Initialize the entry field based on the existence of the encrypted key file
+    groq_key_path = os.path.join(config.save_directory, "groq_key.encrypted")
+    if os.path.exists(groq_key_path):
+        groq_key_entry.config(state="readonly")  # Make it readonly if the file exists
+        groq_key_var.set("**********************************")  # Set dummy input
+        save_key_button_state = "disabled"
+        delete_key_button_state = "normal"
+    else:
+        groq_key_entry.config(state="normal")  # Make it editable if the file doesn't exist
+        groq_key_var.set("")  # Set blank
+        save_key_button_state = "normal"
+        delete_key_button_state = "disabled"
+
     groq_key_entry.grid(row=0, column=1, padx=5, pady=5)
 
+    def save_groq_key_ui():
+        save_groq_key(groq_key_var.get())
+        groq_key_entry.config(state="readonly")
+        save_key_button.config(state="disabled")
+        delete_key_button.config(state="normal")
+
+    def delete_groq_key_ui():
+        delete_groq_key()
+        groq_key_entry.config(state="normal")
+        groq_key_var.set("")
+        save_key_button.config(state="normal")
+        delete_key_button.config(state="disabled")
+
     save_key_button = tk.Button(transcription_tab, text="Save Key",
-                                command=lambda: save_groq_key(groq_key_var.get()), width=8)
+                                command=save_groq_key_ui, width=8, state=save_key_button_state)
     save_key_button.grid(row=0, column=2, padx=5, pady=5)
-    delete_key_button = tk.Button(transcription_tab, text="Delete Key", command=delete_groq_key, width=8)
+    delete_key_button = tk.Button(transcription_tab, text="Delete Key", command=delete_groq_key_ui, width=8, state=delete_key_button_state)
     delete_key_button.grid(row=0, column=3, padx=5, pady=5)
 
     # --- Tab 3: Text Model ---
@@ -88,8 +116,35 @@ def open_settings():
     api_key_label = tk.Label(text_model_tab, text="API Key:")
     api_key_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
     api_key_var = tk.StringVar(text_model_tab)
-    api_key_entry = tk.Entry(text_model_tab, textvariable=api_key_var, show="*", width=30)
+    api_key_entry = tk.Entry(text_model_tab, textvariable=api_key_var, show="*", width=30, state="normal")  # Enable entry by default
+
+    # Initialize the entry field based on the existence of the encrypted key file
+    openai_key_path = os.path.join(config.save_directory, "openai_key.encrypted")
+    if os.path.exists(openai_key_path):
+        api_key_entry.config(state="readonly")  # Make it readonly if the file exists
+        api_key_var.set("**********************************")  # Set dummy input
+        save_openai_key_button_state = "disabled"
+        delete_openai_key_button_state = "normal"
+    else:
+        api_key_entry.config(state="normal")  # Make it editable if the file doesn't exist
+        api_key_var.set("")  # Set blank
+        save_openai_key_button_state = "normal"
+        delete_openai_key_button_state = "disabled"
+
     api_key_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+
+    def save_openai_key_ui():
+        save_openai_key(api_key_var.get())
+        api_key_entry.config(state="readonly")
+        save_openai_key_button.config(state="disabled")
+        delete_openai_key_button.config(state="normal")
+
+    def delete_openai_key_ui():
+        delete_openai_api_key()
+        api_key_entry.config(state="normal")
+        api_key_var.set("")
+        save_openai_key_button.config(state="normal")
+        delete_openai_key_button.config(state="disabled")
 
     def save_openai_key_to_file():
         """Saves the OpenAI API key."""
@@ -101,11 +156,11 @@ def open_settings():
 
     button_width = 12  # Set a consistent width for all buttons
 
-    save_openai_key_button = tk.Button(text_model_tab, text="Save Key", 
-                                       command=lambda: save_openai_key_to_file(), width=button_width)
+    save_openai_key_button = tk.Button(text_model_tab, text="Save Key",
+                                       command=save_openai_key_ui, width=button_width, state=save_openai_key_button_state)
     save_openai_key_button.grid(row=2, column=2, padx=5, pady=5)
     delete_openai_key_button = tk.Button(text_model_tab, text="Delete Key",
-                                         command=delete_openai_api_key, width=button_width)
+                                         command=delete_openai_key_ui, width=button_width, state=delete_openai_key_button_state)
     delete_openai_key_button.grid(row=2, column=3, padx=0, pady=0)
 
     fetch_models_button = tk.Button(text_model_tab, text="Fetch Models",
@@ -194,17 +249,3 @@ def open_settings():
     """
     about_label = tk.Label(about_tab, text=about_text, justify="left")
     about_label.pack(pady=10, padx=10)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
