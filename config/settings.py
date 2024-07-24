@@ -41,7 +41,7 @@ def load_settings():
     groq_key_path = os.path.join(config.save_directory, "groq_key.encrypted")
 
     if os.path.exists(salt_path) and os.path.exists(groq_key_path):
-        password = get_password_from_user("Enter your password to unlock the Transcription Model key:")
+        password = get_password_from_user("Enter your password to unlock the Transcription Model key:", "groq")
         if password:
             if not load_groq_key(groq_key_path, password):
                 messagebox.showerror("Error", "Incorrect password for Transcription Model key.")
@@ -52,7 +52,7 @@ def load_settings():
     salt_path = os.path.join(config.save_directory, ".openai_salt") # Update salt file name
     openai_key_path = os.path.join(config.save_directory, "openai_key.encrypted")
     if os.path.exists(salt_path) and os.path.exists(openai_key_path):
-        password = get_password_from_user("Enter your password to unlock the Text Model key:")
+        password = get_password_from_user("Enter your password to unlock the Text Model key:", "openai")
         if password:
             if not load_openai_key(openai_key_path, password):
                 messagebox.showerror("Error", "Incorrect password for Text Model Key.")
