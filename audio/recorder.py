@@ -12,19 +12,21 @@ from ui.utils import update_status, simulate_waveform, draw_straight_line, stop_
 # Global variables
 recording = False
 paused = False  # Add paused flag
-audio_data = None
+audio_data = []  # Use a list to collect chunks
 start_time = None
 recording_thread = None
 pause_event = threading.Event()
 
 def record_audio():
     """Starts audio recording after checking for Groq API key."""
-    global recording, recording_thread
+    global recording, recording_thread, audio_data
     print(f"GROQ API Key from recorder.py: {config.GROQ_API_KEY}")
     if config.GROQ_API_KEY is None:
         update_status("Please set your Transcription and Text Model API keys in settings.")
         return
     recording = True
+    paused = False
+    audio_data = []  # Reset audio data
     from ui.main_window import record_button, stop_button, pause_button, canvas, root  # Import additional global variables
     record_button['state'] = 'disabled'
     stop_button['state'] = 'normal'
@@ -60,26 +62,22 @@ def background_recording():
     fs = 44100  # Sample rate
     start_time = time.time()
 
-    audio_data = np.array([], dtype='float32')  # Initialize audio_data to prevent NameError
-
     try:
         # Prepare recording stream
         stream = sd.InputStream(samplerate=fs, channels=1, dtype='float32')
         stream.start()
-        chunks = []
         print("Recording started...")
 
         loop_counter = 0  # To count the number of iterations (chunks recorded)
 
         # Record as long as recording is True
         while recording:
-            pause_event.wait()  # Wait while paused
-            if not recording:
-                break
+            if paused:
+                pause_event.wait()  # Wait while paused
             data, overflowed = stream.read(fs)  # Read data for 1 second
             if overflowed:
                 print("Audio buffer overflowed")
-            chunks.append(data)
+            audio_data.append(data)  # Collect chunks of audio data
 
             # Log the size of the current chunk and the iteration count
             print(f"Chunk {loop_counter}: shape={data.shape}, overflowed={overflowed}")
@@ -89,10 +87,6 @@ def background_recording():
         stream.stop()
         stream.close()
         print(f"Recording stopped. Total chunks recorded: {loop_counter}")
-
-        # Combine chunks into one array
-        audio_data = np.vstack(chunks)
-        print(f"Total recording duration (approx.): {audio_data.shape[0]/fs} seconds")
 
     except Exception as e:
         print(f"An error occurred during recording: {e}")
@@ -138,8 +132,8 @@ def complete_stop_recording():
     print("After draw_straight_line(canvas)")
 
     fs = 44100  # Sample rate used for recording
-    if hasattr(audio_data, 'size') and audio_data.size > 0:
-        wav_path = save_audio_as_wav(audio_data, fs)
+    if audio_data:
+        wav_path = save_audio_as_wav(np.vstack(audio_data), fs)
         mp3_path = convert_wav_to_mp3(wav_path)
         threading.Thread(target=transcribe_audio, args=(mp3_path,), daemon=True).start()
     else:
