@@ -106,6 +106,8 @@ For any other questions, support or appreciation, please contact [Dr. Ankush](ma
 ## Acknowledgments 🙏
 
 - [Groq](https://groq.com) for providing API for Whisper-large-v3 voice-to-text model and LLaMA3-70b-8192 and other LLMs.
+- [Meta](https://meta.ai) for open-source LLaMA series models.
+- [Open AI](https://openai.com) for open-source Whisper-large-v3 voice-to-text model.
 
 ## Disclaimer 🚨
 
