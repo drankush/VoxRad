@@ -29,8 +29,9 @@ def open_settings():
     dir_entry = tk.Entry(general_tab, textvariable=dir_var, width=30)
     dir_entry.grid(row=0, column=1, padx=5, pady=5)
 
+
     def browse_directory():
-        global template_dropdown
+        print(config.template_dropdown)
         directory = filedialog.askdirectory()
         if directory:
             old_directory = config.save_directory
@@ -39,11 +40,12 @@ def open_settings():
             save_settings()  # Save settings using self
             if old_directory:
                 move_files(old_directory, config.save_directory)
-            load_templates(template_dropdown)  # Pass template_dropdown
+            load_templates()  # Pass template_dropdown
 
-    browse_button = tk.Button(general_tab, text="Browse", command=browse_directory)
+    # browse_button = tk.Button(general_tab, text="Browse", command=browse_directory)
+    browse_button = tk.Button(general_tab, text="Browse", command=lambda: browse_directory())
     browse_button.grid(row=0, column=2, padx=5, pady=5)
-
+    
     def open_templates_folder():
         templates_path = os.path.join(config.save_directory, "templates")
         if not os.path.exists(templates_path):
