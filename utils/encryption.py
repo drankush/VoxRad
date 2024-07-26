@@ -91,7 +91,6 @@ def load_groq_key(key_file="groq_key.encrypted", password="default_password"):
             key = get_encryption_key(password)
             f = Fernet(key)
             config.GROQ_API_KEY = f.decrypt(encrypted_key).decode()
-            # print(f"GROQ API Key loaded successfully: {config.GROQ_API_KEY}")  # Debugging statement
             return True  # Decryption was successful
         except Exception as e:
             print(f"Error loading Groq API key: {e}")
@@ -182,13 +181,18 @@ def delete_openai_api_key():
     else:
         update_status("OpenAI API key not found.")
 
-
-
 def fetch_models(base_url, api_key, model_combobox):
     """Fetches available models from OpenAI and updates the model combobox."""
     try:
+        # Check if API key is loaded; if not, attempt to load it
+        if not config.OPENAI_API_KEY:
+            password = get_password_from_user("Enter your password to unlock the OpenAI key:", "openai")
+            if password:
+                if not load_openai_key(password=password):
+                    raise ValueError("Incorrect password for OpenAI Key.")
+        
         print("Initializing OpenAI client")
-        client = openai.OpenAI(api_key=api_key, base_url=base_url)
+        client = openai.OpenAI(api_key=config.OPENAI_API_KEY, base_url=base_url)
         print("Client initialized, fetching models")
         models = client.models.list()
         print("Models fetched")
