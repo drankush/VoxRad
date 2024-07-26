@@ -5,5 +5,6 @@ class Config:
     GROQ_API_KEY = None
     SELECTED_MODEL = None
     global_md_text_content = ""
+    template_dropdown = None
 
 config = Config()
