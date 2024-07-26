@@ -8,6 +8,8 @@ from ui.settings_window import open_settings
 from ui.utils import initialize_status_var, update_status, draw_straight_line, simulate_waveform
 from config.config import config  # Import the config instance
 from utils.file_handling import load_templates
+from audio.transcriber import transcribe_audio  # Import the transcription function
+import os
 
 # Global variables
 recording = False
@@ -22,6 +24,14 @@ stop_button = None
 pause_button = None  # Add pause_button
 template_dropdown = None 
 
+
+def retry_transcription():
+    """Retries the transcription using the recorded_audio.mp3 file."""
+    recorded_audio_path = os.path.join(config.save_directory, "recorded_audio.mp3")
+    if os.path.exists(recorded_audio_path):
+        transcribe_audio(recorded_audio_path)
+    else:
+        update_status("No recorded audio found to retry transcription.")
 
 
 def initialize_ui():
@@ -86,18 +96,18 @@ def initialize_ui():
     bottom_frame.grid_columnconfigure(0, weight=1)
 
     # Template Dropdown
-    # global template_dropdown
-    # template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
-    # template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
-    # template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, template_dropdown))
-
     config.template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
     config.template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
     config.template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, config.template_dropdown))
 
+    # Retry Button
+    retry_button = tk.Button(bottom_frame, text="🔄", command=retry_transcription, width=1, height=1)
+    retry_button.grid(row=0, column=1, padx=0)
+
     # Settings Button
-    settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=2, height=1)
-    settings_button.grid(row=0, column=1, padx=(0, 10))
+    settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=1, height=1)
+    settings_button.grid(row=0, column=2, padx=(0, 10))
+
 
     # Load templates
     load_templates()
