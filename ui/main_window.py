@@ -86,17 +86,21 @@ def initialize_ui():
     bottom_frame.grid_columnconfigure(0, weight=1)
 
     # Template Dropdown
-    global template_dropdown
-    template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
-    template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
-    template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, template_dropdown))
+    # global template_dropdown
+    # template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
+    # template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
+    # template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, template_dropdown))
+
+    config.template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
+    config.template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
+    config.template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, config.template_dropdown))
 
     # Settings Button
     settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=2, height=1)
     settings_button.grid(row=0, column=1, padx=(0, 10))
 
     # Load templates
-    load_templates(template_dropdown)
+    load_templates()
 
     root.mainloop()
 
