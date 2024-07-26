@@ -98,7 +98,7 @@ def initialize_ui():
     # Template Dropdown
     config.template_dropdown = ttk.Combobox(bottom_frame, values=template_options, state="readonly")
     config.template_dropdown.grid(row=0, column=0, sticky='ew', padx=(10, 5))
-    config.template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event, config.template_dropdown))
+    config.template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event))
 
     # Retry Button
     retry_button = tk.Button(bottom_frame, text="🔄", command=retry_transcription, width=1, height=1)
