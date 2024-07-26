@@ -3,39 +3,35 @@ import shutil
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import re
-from config.config import config  
+from config.config import config
 
 # Global variables
 template_options = []
 
-
-def load_templates(template_dropdown):
+def load_templates():
     """Loads templates from the 'templates' directory and updates dropdown."""
     global template_options
     template_dir = os.path.join(config.save_directory, "templates")
-    # print(f"Template directory: {template_dir}")  # Debug: Print the template directory
     if not os.path.exists(template_dir):
         os.makedirs(template_dir)  # Create the templates directory if it doesn't exist
     template_files = [f for f in os.listdir(template_dir) if f.endswith((".txt", ".md"))]
-    # print(f"Template files found: {template_files}")  # Debug: Print the list of template files
     template_files.sort()  # Sort the list of template files alphabetically
     template_options = [os.path.splitext(f)[0].replace("_", " ") for f in template_files]
-    update_template_dropdown(template_dropdown)
+    update_template_dropdown()
 
-def update_template_dropdown(template_dropdown):
+def update_template_dropdown():
     """Updates the options in the template dropdown menu."""
     global template_options
-    if template_dropdown:  # Ensure template_dropdown is not None
-        template_dropdown["values"] = template_options
-        print(f"Combobox values updated: {template_dropdown['values']}")  # Debug: Print the updated combobox values
+    if config.template_dropdown:  # Ensure template_dropdown is not None
+        config.template_dropdown["values"] = template_options
+        print(f"Combobox values updated: {config.template_dropdown['values']}")  # Debug: Print the updated combobox values
         if template_options:  # Check if template_options is not empty
-            template_dropdown.set("")  # Set an empty selection to force user to choose
+            config.template_dropdown.set("")  # Set an empty selection to force user to choose
 
-            
-def on_template_select(event=None, template_dropdown=None):
+def on_template_select(event=None):
     """Handles template selection from the dropdown menu."""
-    if template_dropdown:
-        selected_index = template_dropdown.current()
+    if config.template_dropdown:
+        selected_index = config.template_dropdown.current()
         if selected_index != -1:
             selected_template = template_options[selected_index]
             template_file_txt = os.path.join(config.save_directory, "templates", selected_template.replace(" ", "_") + ".txt")
@@ -57,7 +53,6 @@ def on_template_select(event=None, template_dropdown=None):
             except Exception as e:
                 print(f"Error loading template: {e}")
                 config.global_md_text_content = ""
-
 
 def move_files(old_dir, new_dir):
     """Moves the groq_key.encrypted file, salt file, and templates folder from the old to the new directory."""
