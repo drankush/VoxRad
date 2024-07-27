@@ -10,6 +10,9 @@ from ui.utils import update_status
 import openai
 from openai import OpenAI
 
+password_dialog_open = False  # Global flag to track if a password dialog is open
+
+
 def ensure_salt_exists(salt_filename=".myapp_salt"):
     """Ensure that a salt exists and is stored securely."""
     salt_path = os.path.join(config.save_directory, salt_filename)
@@ -37,8 +40,16 @@ def get_encryption_key(password, salt_filename=".myapp_salt"):
     key = urlsafe_b64encode(kdf.derive(password.encode()))
     return key
 
+
 def get_password_from_user(prompt, flag):
     """Prompt the user to enter their password securely with error handling for incorrect entries."""
+    global password_dialog_open
+    if password_dialog_open:
+        messagebox.showerror("Error", "Another password dialog is already open.")
+        return None
+
+    password_dialog_open = True  # Set the flag to True
+
     class PasswordDialog(simpledialog.Dialog):
         def body(self, master):
             tk.Label(master, text=prompt).grid(row=0)
@@ -57,10 +68,12 @@ def get_password_from_user(prompt, flag):
         password = dialog.result
         if password is None:
             root.destroy()
+            password_dialog_open = False  # Reset the flag if the dialog is canceled
             return None  # User cancelled the dialog
 
         if is_password_correct(password, flag):
             root.destroy()
+            password_dialog_open = False  # Reset the flag after successful validation
             return password  # Correct password entered
 
         messagebox.showerror("Error", "Incorrect password, please try again.")
