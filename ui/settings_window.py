@@ -7,7 +7,7 @@ import webbrowser
 from ui.utils import update_status
 from config.config import config
 from utils.file_handling import move_files, load_templates
-from utils.encryption import save_groq_key, save_openai_key, delete_groq_key, delete_openai_api_key, fetch_models
+from utils.encryption import save_groq_key, save_openai_key, delete_groq_key, delete_openai_api_key, fetch_models, get_password_from_user, load_groq_key, load_openai_key
 from config.settings import save_settings, get_default_config_path
 
 def open_settings():
@@ -68,41 +68,80 @@ def open_settings():
     groq_key_label = tk.Label(transcription_tab, text="Groq API Key:")
     groq_key_label.grid(row=0, column=0, padx=5, pady=5)
     groq_key_var = tk.StringVar(transcription_tab)
-    groq_key_entry = tk.Entry(transcription_tab, textvariable=groq_key_var, show="*", width=30, state="normal")  # Enable entry by default
+    groq_key_entry = tk.Entry(transcription_tab, textvariable=groq_key_var, show="*", width=30, state="normal")
 
     # Initialize the entry field based on the existence of the encrypted key file
     groq_key_path = os.path.join(config.save_directory, "groq_key.encrypted")
     if os.path.exists(groq_key_path):
-        groq_key_entry.config(state="readonly")  # Make it readonly if the file exists
-        groq_key_var.set("**********************************")  # Set dummy input
-        save_key_button_state = "disabled"
-        delete_key_button_state = "normal"
+        groq_key_entry.config(state="readonly")
+        groq_key_var.set("**********************************")
+        save_delete_button_state = "Delete Key"
+        lock_unlock_button_state = "normal"
     else:
-        groq_key_entry.config(state="normal")  # Make it editable if the file doesn't exist
-        groq_key_var.set("")  # Set blank
-        save_key_button_state = "normal"
-        delete_key_button_state = "disabled"
+        groq_key_entry.config(state="normal")
+        groq_key_var.set("")
+        save_delete_button_state = "Save Key"
+        lock_unlock_button_state = "disabled"
 
     groq_key_entry.grid(row=0, column=1, padx=5, pady=5)
 
     def save_groq_key_ui():
-        save_groq_key(groq_key_var.get())
-        groq_key_entry.config(state="readonly")
-        save_key_button.config(state="disabled")
-        delete_key_button.config(state="normal")
+        if groq_key_var.get().strip() == "":
+            update_status("API key cannot be empty.")
+            messagebox.showerror("Error", "API key cannot be empty.")
+            return
+
+        if save_groq_key(groq_key_var.get()):
+            # Update UI elements directly within the function
+            groq_key_entry.config(state="readonly")
+            save_delete_button.config(text="Delete Key")
+            lock_unlock_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
+            settings_window.update_idletasks()  # Force UI update
 
     def delete_groq_key_ui():
         delete_groq_key()
         groq_key_entry.config(state="normal")
         groq_key_var.set("")
-        save_key_button.config(state="normal")
-        delete_key_button.config(state="disabled")
+        save_delete_button.config(text="Save Key")
+        lock_unlock_button.config(state="disabled", text="🔓 Unlock Key")  # Update button text and disable lock button
 
-    save_key_button = tk.Button(transcription_tab, text="Save Key",
-                                command=save_groq_key_ui, width=8, state=save_key_button_state)
-    save_key_button.grid(row=0, column=2, padx=5, pady=5)
-    delete_key_button = tk.Button(transcription_tab, text="Delete Key", command=delete_groq_key_ui, width=8, state=delete_key_button_state)
-    delete_key_button.grid(row=0, column=3, padx=5, pady=5)
+    def toggle_save_delete_key():
+        if save_delete_button.cget("text") == "Save Key":
+            if save_groq_key_ui():  # Call save_groq_key_ui and check for success
+                # Update UI elements directly within the function
+                groq_key_entry.config(state="readonly")
+                save_delete_button.config(text="Delete Key")
+                lock_unlock_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
+                settings_window.update_idletasks()  # Force UI update
+        else:
+            delete_groq_key_ui()
+
+    save_delete_button = tk.Button(transcription_tab, text=save_delete_button_state,
+                                command=toggle_save_delete_key, width=8)
+    save_delete_button.grid(row=0, column=2, padx=5, pady=5)
+
+    def toggle_lock_unlock_groq_key():
+        if config.GROQ_API_KEY is None:
+            password = get_password_from_user("Enter your password to unlock the Transcription Model key:", "groq")
+            if password:
+                if load_groq_key(password=password):
+                    lock_unlock_button.config(text="🔒 Lock Key")  # Update button text
+                    update_status("Transcription Model key unlocked.")
+                else:
+                    update_status("Incorrect password for Transcription Model key.")
+                    messagebox.showerror("Error", "Incorrect password for Transcription Model key.")
+        else:
+            config.GROQ_API_KEY = None
+            lock_unlock_button.config(text="🔓 Unlock Key")  # Update button text
+            update_status("Transcription Model key locked.")
+
+    # Set initial state for lock/unlock button
+    lock_unlock_button_text = "🔒 Lock Key" if config.GROQ_API_KEY else "🔓 Unlock Key"
+    lock_unlock_button = tk.Button(transcription_tab, text=lock_unlock_button_text,
+                                command=toggle_lock_unlock_groq_key, width=8, state=lock_unlock_button_state)
+    lock_unlock_button.grid(row=0, column=3, padx=5, pady=5)
+
+
 
     # --- Tab 3: Text Model ---
     text_model_tab = ttk.Frame(tab_control)
@@ -125,48 +164,73 @@ def open_settings():
     if os.path.exists(openai_key_path):
         api_key_entry.config(state="readonly")  # Make it readonly if the file exists
         api_key_var.set("**********************************")  # Set dummy input
-        save_openai_key_button_state = "disabled"
-        delete_openai_key_button_state = "normal"
+        save_delete_openai_button_state = "Delete Key"
+        lock_unlock_openai_button_state = "normal"
     else:
         api_key_entry.config(state="normal")  # Make it editable if the file doesn't exist
         api_key_var.set("")  # Set blank
-        save_openai_key_button_state = "normal"
-        delete_openai_key_button_state = "disabled"
+        save_delete_openai_button_state = "Save Key"
+        lock_unlock_openai_button_state = "disabled"
 
     api_key_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
     def save_openai_key_ui():
-        save_openai_key(api_key_var.get())
-        api_key_entry.config(state="readonly")
-        save_openai_key_button.config(state="disabled")
-        delete_openai_key_button.config(state="normal")
+        if api_key_var.get().strip() == "":
+            update_status("API key cannot be empty.")
+            messagebox.showerror("Error", "API key cannot be empty.")
+            return
+
+        if save_openai_key(api_key_var.get()):
+            # Update UI elements directly within the function
+            api_key_entry.config(state="readonly")
+            save_delete_openai_button.config(text="Delete Key")
+            lock_unlock_openai_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
+            settings_window.update_idletasks()  # Force UI update
 
     def delete_openai_key_ui():
         delete_openai_api_key()
         api_key_entry.config(state="normal")
         api_key_var.set("")
-        save_openai_key_button.config(state="normal")
-        delete_openai_key_button.config(state="disabled")
+        save_delete_openai_button.config(text="Save Key")
+        lock_unlock_openai_button.config(state="disabled", text="🔓 Unlock Key")  # Update button text and disable lock button
 
-    def save_openai_key_to_file():
-        """Saves the OpenAI API key."""
-        api_key = api_key_var.get()
-        if api_key:
-            save_openai_key(api_key)
+    def toggle_save_delete_openai_key():
+        if save_delete_openai_button.cget("text") == "Save Key":
+            if save_openai_key_ui():  # Call save_openai_key_ui and check for success
+                # Update UI elements directly within the function
+                api_key_entry.config(state="readonly")
+                save_delete_openai_button.config(text="Delete Key")
+                lock_unlock_openai_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
+                settings_window.update_idletasks()  # Force UI update
         else:
-            update_status("OpenAI API key cannot be empty.")
+            delete_openai_key_ui()
 
-    button_width = 12  # Set a consistent width for all buttons
+    save_delete_openai_button = tk.Button(text_model_tab, text=save_delete_openai_button_state,
+                                        command=toggle_save_delete_openai_key, width=12)
+    save_delete_openai_button.grid(row=2, column=2, padx=5, pady=5)
 
-    save_openai_key_button = tk.Button(text_model_tab, text="Save Key",
-                                       command=save_openai_key_ui, width=button_width, state=save_openai_key_button_state)
-    save_openai_key_button.grid(row=2, column=2, padx=5, pady=5)
-    delete_openai_key_button = tk.Button(text_model_tab, text="Delete Key",
-                                         command=delete_openai_key_ui, width=button_width, state=delete_openai_key_button_state)
-    delete_openai_key_button.grid(row=2, column=3, padx=0, pady=0)
+    def toggle_lock_unlock_openai_key():
+        if config.OPENAI_API_KEY is None:
+            password = get_password_from_user("Enter your password to unlock the Text Model key:", "openai")
+            if password:
+                if load_openai_key(password=password):
+                    lock_unlock_openai_button.config(text="🔒 Lock Key")  # Update button text
+                    update_status("Text Model key unlocked.")
+                else:
+                    update_status("Incorrect password for Text Model key.")
+                    messagebox.showerror("Error", "Incorrect password for Text Model key.")
+        else:
+            config.OPENAI_API_KEY = None
+            lock_unlock_openai_button.config(text="🔓 Unlock Key")  # Update button text
+            update_status("Text Model key locked.")
+
+    # Set initial state for lock/unlock button
+    lock_unlock_openai_button_text = "🔒 Lock Key" if config.OPENAI_API_KEY else "🔓 Unlock Key"
+    lock_unlock_openai_button = tk.Button(text_model_tab, text=lock_unlock_openai_button_text, command=toggle_lock_unlock_openai_key, width=12, state=lock_unlock_openai_button_state)
+    lock_unlock_openai_button.grid(row=2, column=3, padx=5, pady=5)
 
     fetch_models_button = tk.Button(text_model_tab, text="Fetch Models",
-                                    command=lambda: fetch_models(base_url_var.get(), api_key_var.get(), model_combobox), width=button_width)
+                                    command=lambda: fetch_models(base_url_var.get(), api_key_var.get(), model_combobox), width=12)
     fetch_models_button.grid(row=3, column=2, padx=5, pady=5)
 
     model_label = tk.Label(text_model_tab, text="Select Model:")
@@ -211,8 +275,12 @@ def open_settings():
         config.SELECTED_MODEL = model_combobox.get()
         update_status("Settings saved.")
 
-    save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=button_width)
+    save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=12)
     save_settings_button.grid(row=3, column=3, padx=5, pady=5)
+
+
+
+
 
     # --- Tab 4: Help ---
     help_tab = ttk.Frame(tab_control)
