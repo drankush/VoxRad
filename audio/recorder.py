@@ -22,7 +22,7 @@ def record_audio():
     global recording, recording_thread, audio_data
     print(f"GROQ API Key from recorder.py: {config.GROQ_API_KEY}")
     if config.GROQ_API_KEY is None:
-        update_status("Please set your Transcription and Text Model API keys in settings.")
+        update_status("Please Save/Unlock your Transcription and Text Model API keys in Settings.")
         return
     recording = True
     paused = False
