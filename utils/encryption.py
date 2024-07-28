@@ -79,6 +79,7 @@ def get_password_from_user(prompt, flag):
         messagebox.showerror("Error", "Incorrect password, please try again.")
         # The loop will continue, prompting the user again
 
+
 def get_save_password_from_user(prompt):
     """Prompt the user to enter their password securely."""
     root = tk.Tk()
@@ -91,8 +92,13 @@ def is_password_correct(password, flag):
     """Function to check if the provided password is correct by attempting to decrypt the encrypted key file."""
     if flag == "groq":
         return load_groq_key(password=password)
-    else:
+    elif flag == "openai":
         return load_openai_key(password=password)
+    elif flag == "mm":
+        return load_mm_key(password=password)
+    else:
+        return False  # Invalid flag
+    
 
 def load_groq_key(key_file="groq_key.encrypted", password="default_password"):
     """Loads and decrypts the Groq API key from the encrypted file. Returns True if decryption is successful."""
@@ -109,7 +115,6 @@ def load_groq_key(key_file="groq_key.encrypted", password="default_password"):
             print(f"Error loading Groq API key: {e}")
             return False  # Decryption failed
     return False  # File does not exist
-
 
 
 def save_groq_key(api_key, key_file="groq_key.encrypted"):
@@ -164,6 +169,7 @@ def load_openai_key(key_file="openai_key.encrypted", password="default_password"
             return False  # Decryption failed
     return False  # File does not exist
 
+
 def save_openai_key(api_key, key_file="openai_key.encrypted"):
     """Encrypts and saves the Openai API key to a file after getting a new password."""
     key_path = os.path.join(config.save_directory, key_file)
@@ -200,6 +206,7 @@ def delete_openai_api_key():
     else:
         update_status("OpenAI API key not found.")
 
+
 def fetch_models(base_url, api_key, model_combobox):
     """Fetches available models from OpenAI and updates the model combobox."""
     try:
@@ -234,3 +241,61 @@ def fetch_models(base_url, api_key, model_combobox):
     except Exception as e:
         print(f"Failed to fetch models: {str(e)}")
         messagebox.showerror("Error", f"Failed to fetch models: {str(e)}")
+
+
+###---------------- Multimodal Support ----------------####
+
+
+
+def save_mm_key(api_key, key_file="mm_key.encrypted"):
+    """Encrypts and saves the Multimodal Model API key to a file after getting a new password."""
+    key_path = os.path.join(config.save_directory, key_file)
+    password = get_save_password_from_user("Set a new password for the key:")
+    if not password:
+        update_status("No password provided. Key not saved.")
+        return False  # Return False if no password is provided
+
+    try:
+        key = get_encryption_key(password, ".mm_salt")  # Use ".mm_salt" for the salt file
+        f = Fernet(key)
+        encrypted_key = f.encrypt(api_key.encode())
+        with open(key_path, "wb") as f:
+            f.write(encrypted_key)
+        config.MM_API_KEY = api_key
+        update_status("Multimodal Model API key saved.")
+        return True  # Return True if the key is saved successfully
+    except Exception as e:
+        print(f"Error saving Multimodal Model API key: {e}")
+        update_status("Error saving API key.")
+        return False  # Return False if an error occurs
+
+def delete_mm_key():
+    """Deletes the Multimodal Model API key."""
+    key_path = os.path.join(config.save_directory, "mm_key.encrypted")
+    if os.path.exists(key_path):
+        try:
+            os.remove(key_path)
+            config.MM_API_KEY = None
+            update_status("Multimodal Model API key deleted.")
+        except Exception as e:
+            print(f"Error deleting Multimodal Model API key: {e}")
+            update_status("Error deleting API key.")
+    else:
+        update_status("API key not found.")
+
+def load_mm_key(key_file="mm_key.encrypted", password="default_password"):
+    """Loads and decrypts the Multimodal Model API key from the encrypted file. Returns True if decryption is successful."""
+    key_path = os.path.join(config.save_directory, key_file)
+    if os.path.exists(key_path):
+        try:
+            with open(key_path, "rb") as f:
+                encrypted_key = f.read()
+            key = get_encryption_key(password, ".mm_salt")  # Use ".mm_salt" for the salt file
+            f = Fernet(key)
+            config.MM_API_KEY = f.decrypt(encrypted_key).decode()
+            return True  # Decryption was successful
+        except Exception as e:
+            print(f"Error loading Multimodal Model API key: {e}")
+            return False  # Decryption failed
+    return False  # File does not exist
+
