@@ -6,7 +6,7 @@ import soundfile as sf
 import os
 import subprocess
 from config.config import config  
-from audio.transcriber import transcribe_audio
+from audio.transcriber import transcribe_audio, mm_gemini
 from ui.utils import update_status, simulate_waveform, draw_straight_line, stop_waveform_simulation, start_waveform_simulation
 
 # Global variables
@@ -17,13 +17,21 @@ start_time = None
 recording_thread = None
 pause_event = threading.Event()
 
+
 def record_audio():
-    """Starts audio recording after checking for Groq API key."""
+    """Starts audio recording after checking for API keys."""
     global recording, recording_thread, audio_data
-    print(f"GROQ API Key from recorder.py: {config.GROQ_API_KEY}")
-    if config.GROQ_API_KEY is None:
-        update_status("Please Save/Unlock your Transcription and Text Model API keys in Settings.")
-        return
+    
+    # Check for API keys based on multimodal preference
+    if config.multimodal_pref:
+        if config.MM_API_KEY is None:
+            update_status("Please Save/Unlock your Multimodal Model API key in Settings.")
+            return
+    else:
+        if config.GROQ_API_KEY is None or config.OPENAI_API_KEY is None:
+            update_status("Please Save/Unlock your Transcription and Text Model API keys in Settings.")
+            return
+
     recording = True
     paused = False
     audio_data = []  # Reset audio data
@@ -118,6 +126,7 @@ def check_recording_finished():
         # Now that the recording thread has finished, proceed with saving and other tasks
         complete_stop_recording()
 
+
 def complete_stop_recording():
     global audio_data, start_time, recording
     print("complete_stop_recording called")
@@ -135,9 +144,13 @@ def complete_stop_recording():
     if audio_data:
         wav_path = save_audio_as_wav(np.vstack(audio_data), fs)
         mp3_path = convert_wav_to_mp3(wav_path)
-        threading.Thread(target=transcribe_audio, args=(mp3_path,), daemon=True).start()
+        if config.multimodal_pref:
+            threading.Thread(target=mm_gemini, args=(mp3_path,), daemon=True).start()
+        else:
+            threading.Thread(target=transcribe_audio, args=(mp3_path,), daemon=True).start()
     else:
         print("No audio data to save.")
+
 
 def save_audio_as_wav(audio_data, fs):
     """Saves the recorded audio to a WAV file."""
