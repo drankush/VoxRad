@@ -8,7 +8,6 @@ from ui.utils import update_status
 from config.config import config
 from utils.file_handling import move_files, load_templates
 from utils.encryption import save_groq_key, save_openai_key, delete_groq_key, delete_openai_api_key, fetch_models, get_password_from_user, load_groq_key, load_openai_key
-
 from utils.encryption import save_mm_key, delete_mm_key, load_mm_key
 from config.settings import save_settings, get_default_config_path
 
@@ -295,6 +294,14 @@ def open_settings():
         model_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
         multimodal_model_combobox = ttk.Combobox(multimodal_tab, values=['gemini-1.5-pro', 'gemini-1.5-flash'], state="disabled", width=20)
         multimodal_model_combobox.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+        def save_multimodal_model(multimodal_model_combobox):
+            """Saves the selected multimodal model to the settings.ini file."""
+            config.multimodal_model = multimodal_model_combobox.get()
+            save_settings()
+
+        # Bind the combobox selection event to a function that saves the selected model
+        multimodal_model_combobox.bind("<<ComboboxSelected>>", lambda event: save_multimodal_model(multimodal_model_combobox))
 
         # Set initial value for combobox
         if config.multimodal_model:
