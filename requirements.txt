@@ -10,6 +10,7 @@ distro==1.9.0
 groq==0.9.0
 grpcio==1.64.1
 grpcio-status==1.62.2
+google-generativeai
 h11==0.14.0
 httpcore==1.0.5
 httplib2==0.22.0
