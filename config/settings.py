@@ -1,7 +1,7 @@
 import os
 import configparser
 from config.config import config
-from utils.encryption import get_password_from_user, load_groq_key, load_openai_key, load_mm_key
+from utils.encryption import get_password_from_user, load_groq_key, load_openai_key
 from ui.utils import update_status
 from tkinter import messagebox
 
@@ -25,24 +25,21 @@ def load_settings():
 
     if "DEFAULT" in config_parser:
         config.save_directory = config_parser["DEFAULT"].get("WorkingDirectory", os.path.dirname(config_path))
-        config.BASE_URL = config_parser["DEFAULT"].get("OpenAIBaseURL", "https://api.groq.com/openai/v1")
+        config.BASE_URL = config_parser["DEFAULT"].get("OpenAIBaseURL", "https://api.openai.com/v1")
         config.SELECTED_MODEL = config_parser["DEFAULT"].get("SelectedModel", "llama3-70b-8192")
-        config.multimodal_pref = config_parser["DEFAULT"].getboolean("MultimodalPref", False)
-        config.multimodal_model = config_parser["DEFAULT"].get("MultimodalModel", None)
     else:
         print("Warning: 'DEFAULT' section not found in settings.ini. Using default values.")
         config.save_directory = os.path.dirname(config_path)
-        config.BASE_URL = "https://api.groq.com/openai/v1"
+        config.BASE_URL = "https://api.openai.com/v1"
 
     print(f"Using save_directory: {config.save_directory}")  # Debug output
     print(f"Using OpenAI Base URL: {config.BASE_URL}")
     print(f"Using Selected Model: {config.SELECTED_MODEL}")
-    print(f"Using Multimodal Pref: {config.multimodal_pref}")
-    print(f"Using Multimodal Model: {config.multimodal_model}")
 
     # Groq Key Handling
     salt_path = os.path.join(config.save_directory, ".myapp_salt")
     groq_key_path = os.path.join(config.save_directory, "groq_key.encrypted")
+
     if os.path.exists(salt_path) and os.path.exists(groq_key_path):
         password = get_password_from_user("Enter your password to unlock the Transcription Model key:", "groq")
         if password:
@@ -62,28 +59,16 @@ def load_settings():
     else:
         update_status("Kindly save the keys in settings.")
 
-    # MM Key Handling
-    salt_path = os.path.join(config.save_directory, ".mm_salt")  # Update salt file name
-    mm_key_path = os.path.join(config.save_directory, "mm_key.encrypted")
-    if os.path.exists(salt_path) and os.path.exists(mm_key_path):
-        password = get_password_from_user("Enter your password to unlock the Multimodal Model key:", "mm")
-        if password:
-            if not load_mm_key(mm_key_path, password):
-                messagebox.showerror("Error", "Incorrect password for Multimodal Model Key.")
-    else:
-        update_status("Kindly save the keys in settings.")
-
-
+    
+        # Debug output to verify initialization
+    print(f"config.save_directory: {config.save_directory}")
+    print(f"config.BASE_URL: {config.BASE_URL}")
+    print(f"config.SELECTED_MODEL: {config.SELECTED_MODEL}")
+    # print(f"config.GROQ_API_KEY: {config.GROQ_API_KEY}")  # Debug to check if GROQ_API_KEY is set
 
 def save_settings():
     """Saves settings to the config file."""
     config_parser = configparser.ConfigParser()
-    config_parser["DEFAULT"] = {
-        "WorkingDirectory": config.save_directory,
-        "OpenAIBaseURL": config.BASE_URL,
-        "SelectedModel": config.SELECTED_MODEL,
-        "MultimodalPref": config.multimodal_pref,
-        "MultimodalModel": str(config.multimodal_model),  # Convert to string before saving
-    }
+    config_parser["DEFAULT"] = {"WorkingDirectory": config.save_directory}
     with open(get_default_config_path(), "w") as configfile:
         config_parser.write(configfile)
