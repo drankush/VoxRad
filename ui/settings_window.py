@@ -8,6 +8,8 @@ from ui.utils import update_status
 from config.config import config
 from utils.file_handling import move_files, load_templates
 from utils.encryption import save_groq_key, save_openai_key, delete_groq_key, delete_openai_api_key, fetch_models, get_password_from_user, load_groq_key, load_openai_key
+
+from utils.encryption import save_mm_key, delete_mm_key, load_mm_key
 from config.settings import save_settings, get_default_config_path
 
 
@@ -278,7 +280,108 @@ def open_settings():
         save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=12)
         save_settings_button.grid(row=3, column=3, padx=5, pady=5)
 
-        # --- Tab 4: Help ---
+
+
+        # --- Tab 5: Multimodal Model ---
+        multimodal_tab = ttk.Frame(tab_control)
+        tab_control.add(multimodal_tab, text="🤖 Multimodal Model")
+
+        # Multimodal Model Settings
+        use_multimodal_var = tk.BooleanVar(value=config.multimodal_pref)
+        use_multimodal_checkbox = tk.Checkbutton(multimodal_tab, text="Use multimodal model", variable=use_multimodal_var, command=lambda: toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox))
+        use_multimodal_checkbox.grid(row=0, column=0, columnspan=2, sticky="w")
+
+        model_label = tk.Label(multimodal_tab, text="Select Model:")
+        model_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
+        multimodal_model_combobox = ttk.Combobox(multimodal_tab, values=['gemini-1.5-pro', 'gemini-1.5-flash'], state="disabled", width=20)
+        multimodal_model_combobox.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+        # Set initial value for combobox
+        if config.multimodal_model:
+            multimodal_model_combobox.config(state="readonly")
+            multimodal_model_combobox.current(config.multimodal_model.index(config.multimodal_model))
+
+        # MM API Key Setting
+        mm_api_key_label = tk.Label(multimodal_tab, text="Multimodal API Key:")
+        mm_api_key_label.grid(row=2, column=0, padx=5, pady=5)
+        mm_api_key_var = tk.StringVar(multimodal_tab)
+        mm_api_key_entry = tk.Entry(multimodal_tab, textvariable=mm_api_key_var, show="*", width=30, state="disabled")
+
+        # Initialize the entry field based on the existence of the encrypted key file
+        mm_key_path = os.path.join(config.save_directory, "mm_key.encrypted")
+        if os.path.exists(mm_key_path):
+            mm_api_key_entry.config(state="readonly")
+            mm_api_key_var.set("**********************************")
+            save_delete_mm_button_state = "Delete Key"
+            lock_unlock_mm_button_state = "normal"
+        else:
+            mm_api_key_entry.config(state="disabled")
+            mm_api_key_var.set("")
+            save_delete_mm_button_state = "Save Key"
+            lock_unlock_mm_button_state = "disabled"
+
+        mm_api_key_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        def save_mm_key_ui():
+            if mm_api_key_var.get().strip() == "":
+                update_status("API key cannot be empty.")
+                messagebox.showerror("Error", "API key cannot be empty.")
+                return
+
+            if save_mm_key(mm_api_key_var.get()):
+                # Update UI elements directly within the function
+                mm_api_key_entry.config(state="readonly")
+                save_delete_mm_button.config(text="Delete Key")
+                lock_unlock_mm_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
+                config.settings_window.update_idletasks()  # Force UI update
+
+        def delete_mm_key_ui():
+            delete_mm_key()
+            mm_api_key_entry.config(state="normal")
+            mm_api_key_var.set("")
+            save_delete_mm_button.config(text="Save Key")
+            lock_unlock_mm_button.config(state="disabled", text="🔓 Unlock Key")  # Update button text and disable lock button
+
+        def toggle_save_delete_mm_key():
+            if save_delete_mm_button.cget("text") == "Save Key":
+                if save_mm_key_ui():  # Call save_mm_key_ui and check for success
+                    # Update UI elements directly within the function
+                    mm_api_key_entry.config(state="readonly")
+                    save_delete_mm_button.config(text="Delete Key")
+                    lock_unlock_mm_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
+                    config.settings_window.update_idletasks()  # Force UI update
+            else:
+                delete_mm_key_ui()
+
+        save_delete_mm_button = tk.Button(multimodal_tab, text=save_delete_mm_button_state,
+                                    command=toggle_save_delete_mm_key, width=8)
+        save_delete_mm_button.grid(row=2, column=2, padx=5, pady=5)
+
+        def toggle_lock_unlock_mm_key():
+            if config.MM_API_KEY is None:
+                password = get_password_from_user("Enter your password to unlock the Multimodal Model key:", "mm")
+                if password:
+                    if load_mm_key(password=password):
+                        lock_unlock_mm_button.config(text="🔒 Lock Key")  # Update button text
+                        update_status("Multimodal Model key unlocked.")
+                    else:
+                        update_status("Incorrect password for Multimodal Model key.")
+                        messagebox.showerror("Error", "Incorrect password for Multimodal Model key.")
+            else:
+                config.MM_API_KEY = None
+                lock_unlock_mm_button.config(text="🔓 Unlock Key")  # Update button text
+                update_status("Multimodal Model key locked.")
+
+        # Set initial state for lock/unlock button
+        lock_unlock_mm_button_text = "🔒 Lock Key" if config.MM_API_KEY else "🔓 Unlock Key"
+        lock_unlock_mm_button = tk.Button(multimodal_tab, text=lock_unlock_mm_button_text,
+                                    command=toggle_lock_unlock_mm_key, width=8, state=lock_unlock_mm_button_state)
+        lock_unlock_mm_button.grid(row=2, column=3, padx=5, pady=5)
+
+
+
+
+        # --- Tab 5: Help ---
         help_tab = ttk.Frame(tab_control)
         tab_control.add(help_tab, text="💡 Help")
 
@@ -287,7 +390,7 @@ def open_settings():
         read_docs_button.pack(pady=20)
 
 
-        # --- Tab 5: About ---
+        # --- Tab 6: About ---
         about_tab = ttk.Frame(tab_control)
         tab_control.add(about_tab, text="ℹ️ About")
 
@@ -330,3 +433,22 @@ def close_settings_window():
     global settings_window
     config.settings_window.destroy()  # Destroy the window first
     config.settings_window = None  # Then set the reference to None
+
+
+def toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox):
+    """Toggles the multimodal model settings."""
+    if use_multimodal_var.get():
+        # Enable the combobox
+        multimodal_model_combobox.config(state="readonly")
+        multimodal_model_combobox.current(0)  # Set default selection
+        config.multimodal_pref = True
+        config.multimodal_model = multimodal_model_combobox.get()
+        update_status("Multimodal model enabled.")
+    else:
+        # Disable the combobox
+        multimodal_model_combobox.config(state="disabled")
+        config.multimodal_pref = False
+        config.multimodal_model = None
+        update_status("Multimodal model disabled.")
+
+    save_settings()
