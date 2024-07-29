@@ -287,7 +287,7 @@ def open_settings():
 
         # Multimodal Model Settings
         use_multimodal_var = tk.BooleanVar(value=config.multimodal_pref)
-        use_multimodal_checkbox = tk.Checkbutton(multimodal_tab, text="Use multimodal model", variable=use_multimodal_var, command=lambda: toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox))
+        use_multimodal_checkbox = tk.Checkbutton(multimodal_tab, text="Use multimodal model", variable=use_multimodal_var, command=lambda: toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox, mm_api_key_entry))
         use_multimodal_checkbox.grid(row=0, column=0, columnspan=2, sticky="w")
 
         model_label = tk.Label(multimodal_tab, text="Select Model:")
@@ -302,11 +302,14 @@ def open_settings():
 
         # Bind the combobox selection event to a function that saves the selected model
         multimodal_model_combobox.bind("<<ComboboxSelected>>", lambda event: save_multimodal_model(multimodal_model_combobox))
-
+        
         # Set initial value for combobox
-        if config.multimodal_model:
+        if (config.multimodal_model != "None" and config.multimodal_model):
             multimodal_model_combobox.config(state="readonly")
-            multimodal_model_combobox.current(config.multimodal_model.index(config.multimodal_model))
+            if config.multimodal_model == "gemini-1.5-pro": 
+                multimodal_model_combobox.current(0)
+            else:
+                multimodal_model_combobox.current(1)
 
         # MM API Key Setting
         mm_api_key_label = tk.Label(multimodal_tab, text="Multimodal API Key:")
@@ -322,8 +325,11 @@ def open_settings():
             save_delete_mm_button_state = "Delete Key"
             lock_unlock_mm_button_state = "normal"
         else:
-            mm_api_key_entry.config(state="disabled")
-            mm_api_key_var.set("")
+            if config.multimodal_pref == True:
+                mm_api_key_entry.config(state="normal")
+            else:
+                mm_api_key_entry.config(state="disabled")
+                mm_api_key_var.set("")
             save_delete_mm_button_state = "Save Key"
             lock_unlock_mm_button_state = "disabled"
 
@@ -442,18 +448,23 @@ def close_settings_window():
     config.settings_window = None  # Then set the reference to None
 
 
-def toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox):
+def toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox, mm_api_key_entry):
     """Toggles the multimodal model settings."""
+    mm_key_path = os.path.join(config.save_directory, "mm_key.encrypted")
     if use_multimodal_var.get():
-        # Enable the combobox
+        # Enable the combobox and mm api key entry
         multimodal_model_combobox.config(state="readonly")
-        multimodal_model_combobox.current(0)  # Set default selection
+        if os.path.exists(mm_key_path):
+            mm_api_key_entry.config(state="readonly")
+        else:
+            mm_api_key_entry.config(state="normal")
         config.multimodal_pref = True
         config.multimodal_model = multimodal_model_combobox.get()
         update_status("Multimodal model enabled.")
     else:
-        # Disable the combobox
+        # Disable the combobox and mm api key entry
         multimodal_model_combobox.config(state="disabled")
+        mm_api_key_entry.config(state="disabled")
         config.multimodal_pref = False
         config.multimodal_model = None
         update_status("Multimodal model disabled.")
