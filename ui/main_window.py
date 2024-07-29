@@ -10,6 +10,9 @@ from config.config import config  # Import the config instance
 from utils.file_handling import load_templates
 from audio.transcriber import transcribe_audio  # Import the transcription function
 import os
+from audio.transcriber import mm_gemini, transcribe_audio 
+import threading
+
 
 # Global variables
 recording = False
@@ -29,9 +32,13 @@ def retry_transcription():
     """Retries the transcription using the recorded_audio.mp3 file."""
     recorded_audio_path = os.path.join(config.save_directory, "recorded_audio.mp3")
     if os.path.exists(recorded_audio_path):
-        transcribe_audio(recorded_audio_path)
+        if config.multimodal_pref:
+            threading.Thread(target=mm_gemini, args=(recorded_audio_path,), daemon=True).start()
+        else:
+            threading.Thread(target=transcribe_audio, args=(recorded_audio_path,), daemon=True).start()
     else:
         update_status("No recorded audio found to retry transcription.")
+
 
 
 def initialize_ui():
