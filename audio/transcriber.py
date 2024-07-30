@@ -48,6 +48,7 @@ def transcribe_audio(mp3_path):
 def mm_gemini(mp3_path):
     """Generates text from audio using the multimodal Gemini model."""
     try:
+        update_status("Performing AI analysis.🤖")
         # print(f"MM_API_KEY: {config.MM_API_KEY}")  # Print MM_API_KEY
         # print(f"Audio Path: {mp3_path}")  # Print the audio path
         genai.configure(api_key=config.MM_API_KEY)
@@ -63,7 +64,6 @@ This is the report template format as chosen by the user:
         # print(f"Prompt: {prompt}")  # Print the prompt
         response = model.generate_content([prompt, audio_file])
         # print(response.text)
-        update_status("Performing AI analysis.🤖")
         # Extract the text from the response
         if response.text:
             stripped_text = strip_markdown(response.text)  # Strip markdown
