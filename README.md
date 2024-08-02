@@ -48,16 +48,13 @@ To install VOXRAD, follow these steps:
 
 #### Transcription Model Tab 🎙️
 
-- Insert the OpenAI compatible  Base URL and API key here. The application only fetches whisper models. To ask for support for other models, [suggest enhancement](https://github.com/drankush/voxrad/issues?q=label%3Aenhancement+).
+- Insert the OpenAI compatible  **Base URL** and **API Key** here and press **Fetch Models**. The application only fetches **Whisper** models. To ask for support for other models, [suggest enhancement](https://github.com/drankush/voxrad/issues?q=label%3Aenhancement+).
+- Click **Save Settings** to save your selected model and Base URL (these are not encrypted).
 
 #### Text Model Tab 📝
 
-- Use `https://api.groq.com/openai/v1` as the Base URL for the text model. For the text model, you can use any OpenAI compatible API key and Base URL.
-
-  <details>
-  <summary>Read More!</summary>
-  
-  You can directly use any OpenAI compatible API. Read docs of your API provider.  For instance, use Base URL for
+- Use any OpenAI compatible API key and Base URL. 
+- You can directly use any OpenAI compatible API. Read docs of your API provider.  For instance, use Base URL for
   
 
   - [OpenAI](https://platform.openai.com/docs/api-reference/introduction): ```https://api.openai.com/v1/```
@@ -66,12 +63,8 @@ To install VOXRAD, follow these steps:
   - [Groq](https://console.groq.com/docs/openai): ```https://api.groq.com/openai/v1```
   - [Ollama](https://ollama.com/blog/openai-compatibility): ```http://localhost:11434/v1```
       
-    
-
-  <br>Search github for repositories that support transforming your provider to OpenAI compatible API. Please deploy your   own instance. This way, you can keep your API key secure.</br>
+- Search github for repositories that support transforming your provider to OpenAI compatible API. Please deploy your own instance. This way, you can keep your API key secure.</br>
   
-  </details>
-
 - Click **Fetch Model** to see the available models and choose one.
 
 - Click **Save Settings** to save your selected model and Base URL (these are not encrypted).
