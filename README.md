@@ -43,13 +43,12 @@ To install VOXRAD, follow these steps:
 
 - Click and choose the working directory. Here your encrypted keys, templates, and last recorded audio file will be kept.
 
-- There is a **Templates** folder that you can open by clicking the button **Open Templates Folder** in the General tab of settings. Here you can place `.txt` and `.md` template instruction files for various reports like HRCT Thorax, CECT Abdomen. Do trial and error to figure out how much instruction is required for your desired performance by the chosen model. You can download sample templates from the [templates](https://github.com/drankush/voxrad/tree/main/templates) folder of this repository.
-
+- There is a **Templates** folder that you can open by clicking the button **Open Templates Folder** in the General tab of settings. Here you can place `.txt` and `.md` template instruction files for various reports like HRCT Thorax, CECT Abdomen. Do trial and error to figure out how much instruction is required for your desired performance by the chosen model. 
 - You can insert a dictionary of words separated by commas between `[correct spellings] word1, word2, word3 [correct spellings]` inside your template `.txt` and `.md` files. These will be extracted and passed to the voice model to focus on specific words that can be mistaken.
 
 #### Transcription Model Tab 🎙️
 
-- Insert the Groq API key here. Get your Groq API key for transcription and text models from [Groq Console](https://console.groq.com/keys).
+- Insert the OpenAI compatible  Base URL and API key here. The application only fetches whisper models. To ask for support for other models, [suggest enhancement](https://github.com/drankush/voxrad/issues?q=label%3Aenhancement+).
 
 #### Text Model Tab 📝
 
@@ -87,6 +86,10 @@ To install VOXRAD, follow these steps:
 
 - The final formatted and structured report will be automatically posted on your clipboard. You can then directly paste (Ctrl/Cmd + V) it into your application, word processor, or PACS.
 
+## Documentation 📚
+
+Read comprehensive VOXRAD documentation [here](http://voxrad.gitbook.io/voxrad).
+
 ## Contributing 🌟
 
 Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) before getting started.
@@ -102,12 +105,6 @@ To report bugs or issues, please follow [this guide](https://github.com/drankush
 ## Contact 📧
 
 For any other questions, support or appreciation, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
-
-## Acknowledgments 🙏
-
-- [Groq](https://groq.com) for providing API for Whisper-large-v3 voice-to-text model and LLaMA3-70b-8192 and other LLMs.
-- [Meta](https://meta.ai) for open-source LLaMA series models.
-- [Open AI](https://openai.com) for open-source Whisper-large-v3 voice-to-text model.
 
 ## Disclaimer 🚨
 
