@@ -49,7 +49,7 @@ To install VOXRAD, follow these steps:
 
 #### Transcription Model Tab 🎙️
 
-- Insert the Groq API key here. Get your Groq API key for transcription and text models from [Groq Console](https://console.groq.com/keys).
+- Insert the Transcription API key here. Get your Groq API key for transcription and text models from [Groq Console](https://console.groq.com/keys).
 
 #### Text Model Tab 📝
 
