@@ -55,8 +55,8 @@ def on_template_select(event=None):
                 config.global_md_text_content = ""
 
 def move_files(old_dir, new_dir):
-    """Moves the groq_key.encrypted file, salt file, and templates folder from the old to the new directory."""
-    files_to_move = ["groq_key.encrypted", ".myapp_salt", "openai_key.encrypted", ".openai_salt"]
+    """Moves the transcription_key.encrypted file, salt file, and templates folder from the old to the new directory."""
+    files_to_move = ["transcription_key.encrypted", ".myapp_salt", "text_key.encrypted", ".text_salt"]
     folders_to_move = ["templates", "reports"]
     
     for file_name in files_to_move:
