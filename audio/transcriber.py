@@ -1,4 +1,5 @@
 from groq import Groq
+from openai import OpenAI
 import re
 import pyperclip
 from config.config import config
@@ -10,8 +11,8 @@ from datetime import datetime
 import google.generativeai as genai
 
 def transcribe_audio(mp3_path):
-    """Transcribes the audio using Groq's API, extracting spellings from the global template."""
-    client = Groq(api_key=config.GROQ_API_KEY)
+    """Transcribes the audio using OpenAI's API, extracting spellings from the global template."""
+    client = OpenAI(api_key=config.TRANSCRIPTION_API_KEY, base_url=config.TRANSCRIPTION_BASE_URL)
     
     # Ensure global_md_text_content is initialized
     if hasattr(config, 'global_md_text_content') and config.global_md_text_content:
@@ -28,7 +29,7 @@ def transcribe_audio(mp3_path):
             update_status("Transcribing...📝")
             transcription_result = client.audio.transcriptions.create(
                 file=(mp3_path, file.read()),
-                model="whisper-large-v3",
+                model=config.SELECTED_TRANSCRIPTION_MODEL,
                 prompt=prompt_spellings, 
                 language="en",
                 temperature=0.0
