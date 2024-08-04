@@ -90,18 +90,18 @@ def get_save_password_from_user(prompt):
 
 def is_password_correct(password, flag):
     """Function to check if the provided password is correct by attempting to decrypt the encrypted key file."""
-    if flag == "groq":
-        return load_groq_key(password=password)
-    elif flag == "openai":
-        return load_openai_key(password=password)
+    if flag == "transcription":
+        return load_transcription_key(password=password)
+    elif flag == "text":
+        return load_text_key(password=password)
     elif flag == "mm":
         return load_mm_key(password=password)
     else:
         return False  # Invalid flag
     
 
-def load_groq_key(key_file="groq_key.encrypted", password="default_password"):
-    """Loads and decrypts the Groq API key from the encrypted file. Returns True if decryption is successful."""
+def load_transcription_key(key_file="transcription_key.encrypted", password="default_password"):
+    """Loads and decrypts the Transcription API key from the encrypted file. Returns True if decryption is successful."""
     key_path = os.path.join(config.save_directory, key_file)
     if os.path.exists(key_path):
         try:
@@ -109,16 +109,16 @@ def load_groq_key(key_file="groq_key.encrypted", password="default_password"):
                 encrypted_key = f.read()
             key = get_encryption_key(password)
             f = Fernet(key)
-            config.GROQ_API_KEY = f.decrypt(encrypted_key).decode()
+            config.TRANSCRIPTION_API_KEY = f.decrypt(encrypted_key).decode()
             return True  # Decryption was successful
         except Exception as e:
-            print(f"Error loading Groq API key: {e}")
+            print(f"Error loading Transcription API key: {e}")
             return False  # Decryption failed
     return False  # File does not exist
 
 
-def save_groq_key(api_key, key_file="groq_key.encrypted"):
-    """Encrypts and saves the Groq API key to a file after getting a new password."""
+def save_transcription_key(api_key, key_file="transcription_key.encrypted"):
+    """Encrypts and saves the Transcription API key to a file after getting a new password."""
     key_path = os.path.join(config.save_directory, key_file)
     password = get_save_password_from_user("Set a new password for the key:")
     if not password:
@@ -131,47 +131,47 @@ def save_groq_key(api_key, key_file="groq_key.encrypted"):
         encrypted_key = f.encrypt(api_key.encode())
         with open(key_path, "wb") as f:
             f.write(encrypted_key)
-        config.GROQ_API_KEY = api_key
-        update_status("Groq API key saved.")
+        config.TRANSCRIPTION_API_KEY = api_key
+        update_status("Transcription API key saved.")
         return True  # Return True if the key is saved successfully
     except Exception as e:
-        print(f"Error saving Groq API key: {e}")
+        print(f"Error saving Transcription API key: {e}")
         update_status("Error saving API key.")
         return False  # Return False if an error occurs
 
-def delete_groq_key():
-    """Deletes the Groq API key."""
-    key_path = os.path.join(config.save_directory, "groq_key.encrypted")
+def delete_transcription_key():
+    """Deletes the Transcription API key."""
+    key_path = os.path.join(config.save_directory, "transcription_key.encrypted")
     if os.path.exists(key_path):
         try:
             os.remove(key_path)
-            config.GROQ_API_KEY = None
-            update_status("Groq API key deleted.")
+            config.TRANSCRIPTION_API_KEY = None
+            update_status("Transcription API key deleted.")
         except Exception as e:
-            print(f"Error deleting Groq API key: {e}")
+            print(f"Error deleting Transcription API key: {e}")
             update_status("Error deleting API key.")
     else:
         update_status("API key not found.")
 
-def load_openai_key(key_file="openai_key.encrypted", password="default_password"):
-    """Loads and decrypts the Openai API key from the encrypted file. Returns True if decryption is successful."""
+def load_text_key(key_file="text_key.encrypted", password="default_password"):
+    """Loads and decrypts the Text API key from the encrypted file. Returns True if decryption is successful."""
     key_path = os.path.join(config.save_directory, key_file)
     if os.path.exists(key_path):
         try:
             with open(key_path, "rb") as f:
                 encrypted_key = f.read()
-            key = get_encryption_key(password, ".openai_salt")
+            key = get_encryption_key(password, ".text_salt")
             f = Fernet(key)
-            config.OPENAI_API_KEY = f.decrypt(encrypted_key).decode()
+            config.TEXT_API_KEY = f.decrypt(encrypted_key).decode()
             return True  # Decryption was successful
         except Exception as e:
-            print(f"Error loading Openai API key: {e}")
+            print(f"Error loading Text API key: {e}")
             return False  # Decryption failed
     return False  # File does not exist
 
 
-def save_openai_key(api_key, key_file="openai_key.encrypted"):
-    """Encrypts and saves the Openai API key to a file after getting a new password."""
+def save_text_key(api_key, key_file="text_key.encrypted"):
+    """Encrypts and saves the Text API key to a file after getting a new password."""
     key_path = os.path.join(config.save_directory, key_file)
     password = get_save_password_from_user("Set a new password for the key:")
     if not password:
@@ -179,68 +179,104 @@ def save_openai_key(api_key, key_file="openai_key.encrypted"):
         return False  # Return False if no password is provided
 
     try:
-        key = get_encryption_key(password, ".openai_salt")
+        key = get_encryption_key(password, ".text_salt")
         f = Fernet(key)
         encrypted_key = f.encrypt(api_key.encode())
         with open(key_path, "wb") as f:
             f.write(encrypted_key)
-        config.OPENAI_API_KEY = api_key
-        update_status("Openai API key saved.")
+        config.TEXT_API_KEY = api_key
+        update_status("Text API key saved.")
         return True  # Return True if the key is saved successfully
     except Exception as e:
-        print(f"Error saving Openai API key: {e}")
+        print(f"Error saving Text API key: {e}")
         update_status("Error saving API key.")
         return False  # Return False if an error occurs
 
-def delete_openai_api_key():
-    """Deletes the OpenAI API key."""
-    key_path = os.path.join(config.save_directory, "openai_key.encrypted")
+def delete_text_api_key():
+    """Deletes the Text API key."""
+    key_path = os.path.join(config.save_directory, "text_key.encrypted")
     if os.path.exists(key_path):
         try:
             os.remove(key_path)
-            config.OPENAI_API_KEY = None
-            update_status("OpenAI API key deleted.")
+            config.TEXT_API_KEY = None
+            update_status("Text API key deleted.")
         except Exception as e:
-            print(f"Error deleting OpenAI API key: {e}")
-            update_status("Error deleting OpenAI API key.")
+            print(f"Error deleting Text API key: {e}")
+            update_status("Error deleting Text API key.")
     else:
-        update_status("OpenAI API key not found.")
+        update_status("Text API key not found.")
 
 
 def fetch_models(base_url, api_key, model_combobox):
-    """Fetches available models from OpenAI and updates the model combobox."""
+    """Fetches available models and updates the model combobox."""
     try:
-        openai_key_path = os.path.join(config.save_directory, "openai_key.encrypted")
+        text_key_path = os.path.join(config.save_directory, "text_key.encrypted")
 
-        # Check if the OpenAI key file exists
-        if os.path.exists(openai_key_path):
+        # Check if the text key file exists
+        if os.path.exists(text_key_path):
             # Check if API key is loaded; if not, attempt to load it
-            if not config.OPENAI_API_KEY:
-                password = get_password_from_user("Enter your password to unlock the OpenAI key:", "openai")
+            if not config.TEXT_API_KEY:
+                password = get_password_from_user("Enter your password to unlock the Text key:", "text")
                 if password:
-                    if not load_openai_key(password=password):
-                        raise ValueError("Incorrect password for OpenAI Key.")
+                    if not load_text_key(password=password):
+                        raise ValueError("Incorrect password for Text Key.")
 
-            print("Initializing OpenAI client")
-            client = openai.OpenAI(api_key=config.OPENAI_API_KEY, base_url=base_url)
+            print("Initializing Client")
+            client = openai.OpenAI(api_key=config.TEXT_API_KEY, base_url=base_url)
             print("Client initialized, fetching models")
             models = client.models.list()
             print("Models fetched")
 
             # Filter out models starting with certain prefixes
             excluded_prefixes = ("whisper", "dall", "sdxl")
-            model_ids = [model.id for model in models.data if not model.id.startswith(excluded_prefixes)]
+            model_ids = [model.id for model in models.data if not any(prefix in model.id for prefix in excluded_prefixes)]
             print(f"Model IDs: {model_ids}")
 
             model_combobox['values'] = model_ids
             if model_ids:
                 model_combobox.current(0)  # Set default selection
         else:
-            messagebox.showerror("Error", "OpenAI API key not found. Please save the key first.")
+            messagebox.showerror("Error", "Text API key not found. Please save the key first.")
 
     except Exception as e:
         print(f"Failed to fetch models: {str(e)}")
         messagebox.showerror("Error", f"Failed to fetch models: {str(e)}")
+
+
+def fetch_transcription_models(base_url, api_key, model_combobox):
+    """Fetches available transcription models and updates the model combobox."""
+    try:
+        transcription_key_path = os.path.join(config.save_directory, "transcription_key.encrypted")
+
+        # Check if the key file exists
+        if os.path.exists(transcription_key_path):
+            # Check if API key is loaded; if not, attempt to load it
+            if not config.TRANSCRIPTION_API_KEY:
+                password = get_password_from_user("Enter your password to unlock the Transcription key:", "transcription")
+                if password:
+                    if not load_transcription_key(password=password):
+                        raise ValueError("Incorrect password for Transcription Key.")
+
+            print("Initializing Client")
+            client = openai.OpenAI(api_key=config.TRANSCRIPTION_API_KEY, base_url=base_url)
+            print("Client initialized, fetching models")
+            models = client.models.list()
+            print("Models fetched")
+            # Filter out models other than those with whisper
+            included_prefix = "whisper"
+            model_ids = [model.id for model in models.data if included_prefix in model.id]
+            print(f"Model IDs: {model_ids}")
+
+            model_combobox['values'] = model_ids
+            if model_ids:
+                model_combobox.current(0)  # Set default selection
+        else:
+            messagebox.showerror("Error", "Transcription API key not found. Please save the key first.")
+
+    except Exception as e:
+        print(f"Failed to fetch models: {str(e)}")
+        messagebox.showerror("Error", f"Failed to fetch models: {str(e)}")
+
 
 
 ###---------------- Multimodal Support ----------------####
