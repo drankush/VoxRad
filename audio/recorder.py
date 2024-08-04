@@ -28,7 +28,7 @@ def record_audio():
             update_status("Please Save/Unlock your Multimodal Model API key in Settings.")
             return
     else:
-        if config.GROQ_API_KEY is None or config.OPENAI_API_KEY is None:
+        if config.TRANSCRIPTION_API_KEY is None or config.TEXT_API_KEY is None:
             update_status("Please Save/Unlock your Transcription and Text Model API keys in Settings.")
             return
 
