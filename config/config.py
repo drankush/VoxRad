@@ -1,8 +1,10 @@
 class Config:
     save_directory = None
-    OPENAI_API_KEY = None
+    TEXT_API_KEY = None
     BASE_URL = None
-    GROQ_API_KEY = None
+    TRANSCRIPTION_BASE_URL = None
+    TRANSCRIPTION_API_KEY = None
+    SELECTED_TRANSCRIPTION_MODEL = None
     SELECTED_MODEL = None
     global_md_text_content = ""
     template_dropdown = None
