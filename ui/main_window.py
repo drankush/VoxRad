@@ -8,9 +8,8 @@ from ui.settings_window import open_settings
 from ui.utils import initialize_status_var, update_status, draw_straight_line, simulate_waveform
 from config.config import config  # Import the config instance
 from utils.file_handling import load_templates
-from audio.transcriber import transcribe_audio  # Import the transcription function
+from audio.transcriber import mm_gemini, transcribe_audio  # Import the transcription function
 import os
-from audio.transcriber import mm_gemini, transcribe_audio 
 import threading
 
 
@@ -114,7 +113,6 @@ def initialize_ui():
     # Settings Button
     settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=1, height=1)
     settings_button.grid(row=0, column=2, padx=(0, 10))
-
 
     # Load templates
     load_templates()
