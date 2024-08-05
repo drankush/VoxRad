@@ -152,8 +152,10 @@ def open_settings():
         lock_unlock_button.grid(row=2, column=3, padx=5, pady=5)
 
         transcription_fetch_models_button = tk.Button(transcription_tab, text="Fetch Models",
-                                        command=lambda: fetch_transcription_models(transcription_base_url_var.get(), transcription_key_var.get(), transcription_model_combobox), width=27)
-        transcription_fetch_models_button.grid(row=3, column=2, padx=5, pady=5, columnspan=2)
+                                        command=lambda: fetch_transcription_models(transcription_base_url_var.get(), transcription_key_var.get(), transcription_model_combobox), width=12)
+        # transcription_fetch_models_button.grid(row=3, column=2, padx=5, pady=5, columnspan=2)
+        transcription_fetch_models_button.grid(row=3, column=2, padx=5, pady=5)
+
 
         transcription_model_label = tk.Label(transcription_tab, text="Select Model:")
         transcription_model_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
@@ -197,8 +199,9 @@ def open_settings():
             config.SELECTED_TRANSCRIPTION_MODEL = transcription_model_combobox.get()
             update_status("Settings saved.")
 
-        save_transcription_settings_button = tk.Button(transcription_tab, text="Save Settings", command=save_all_transcription_settings, width=27)
-        save_transcription_settings_button.grid(row=4, column=2, padx=5, pady=(160, 0), columnspan=2, sticky="n")
+        save_transcription_settings_button = tk.Button(transcription_tab, text="Save Settings", command=save_all_transcription_settings, width=12)
+        # save_transcription_settings_button.grid(row=4, column=2, padx=5, pady=(160, 0), columnspan=2, sticky="n")
+        save_transcription_settings_button.grid(row=4, column=3, padx=5, pady=(160,0))
 
         # --- Tab 3: Text Model ---
         text_model_tab = ttk.Frame(tab_control)
@@ -287,8 +290,9 @@ def open_settings():
         lock_unlock_text_button.grid(row=2, column=3, padx=5, pady=5)
 
         fetch_models_button = tk.Button(text_model_tab, text="Fetch Models",
-                                        command=lambda: fetch_models(base_url_var.get(), api_key_var.get(), model_combobox), width=27)
-        fetch_models_button.grid(row=3, column=2, padx=5, pady=5, columnspan=2)
+                                        command=lambda: fetch_models(base_url_var.get(), api_key_var.get(), model_combobox), width=12)
+        # fetch_models_button.grid(row=3, column=2, padx=5, pady=5, columnspan=2)
+        fetch_models_button.grid(row=3, column=2, padx=5, pady=5)
 
         model_label = tk.Label(text_model_tab, text="Select Model:")
         model_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
@@ -332,8 +336,10 @@ def open_settings():
             config.SELECTED_MODEL = model_combobox.get()
             update_status("Settings saved.")
 
-        save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=27)
-        save_settings_button.grid(row=4, column=2, padx=5, pady=(160,0), columnspan=2, sticky="n")
+        save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=12)
+        # save_settings_button.grid(row=4, column=2, padx=5, pady=(160,0), columnspan=2, sticky="n")
+        save_settings_button.grid(row=4, column=3, padx=5, pady=(160,0))
+
 
 
 
