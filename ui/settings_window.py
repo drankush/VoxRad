@@ -173,31 +173,18 @@ def open_settings():
 
         transcription_model_label = tk.Label(transcription_tab, text="Select Model:")
         transcription_model_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
-        transcription_model_combobox = ttk.Combobox(transcription_tab, width=29, state="readonly")
+        transcription_model_combobox = ttk.Combobox(transcription_tab, width=25, state="readonly")
         transcription_model_combobox.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
         def open_url(url):
             webbrowser.open_new(url)
 
-        # OpenAI Disclaimer Label
-        transcription_disclaimer_frame = tk.Frame(transcription_tab)
-        transcription_disclaimer_frame.grid(row=0, column=0, columnspan=4, pady=(5, 0), sticky="w")
+        # Create the "💡" button
+        def open_docs_url():
+            webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
-        transcription_disclaimer_text = "  Supports any OpenAI compatible API. Read more"
-        transcription_disclaimer_label = tk.Label(transcription_disclaimer_frame, text=transcription_disclaimer_text, font=("Helvetica", 10, "italic"))
-        transcription_disclaimer_label.pack(side=tk.LEFT)
-
-        transcription_here_link = tk.Label(transcription_disclaimer_frame, text="here", font=("Helvetica", 10, "italic"), fg="blue", cursor="arrow")
-        transcription_here_link.pack(side=tk.LEFT)
-        transcription_here_link.bind("<Button-1>", lambda e: open_url("https://platform.openai.com/docs/api-reference"))
-
-        def open_url(url):
-            if os.name == 'nt':
-                os.startfile(url)
-            elif os.name == 'posix':
-                subprocess.Popen(['open', url])
-            else:
-                print(f"Unsupported operating system: {os.name}")
+        docs_button = tk.Button(transcription_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
+        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
 
         def save_all_transcription_settings():
             """Saves all transcription settings to the config file."""
@@ -284,6 +271,15 @@ def open_settings():
             else:
                 delete_text_key_ui()
 
+        # Create the "💡" button
+        def open_docs_url():
+            webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
+
+        docs_button = tk.Button(text_model_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
+        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
+        
+        
+        
         save_delete_text_button = tk.Button(text_model_tab, text=save_delete_text_button_state,
                                             command=toggle_save_delete_text_key, width=12)
         save_delete_text_button.grid(row=2, column=2, padx=5, pady=5)
@@ -315,31 +311,11 @@ def open_settings():
 
         model_label = tk.Label(text_model_tab, text="Select Model:")
         model_label.grid(row=3, column=0, padx=5, pady=5, sticky="w")
-        model_combobox = ttk.Combobox(text_model_tab, width=29, state="readonly")
+        model_combobox = ttk.Combobox(text_model_tab, width=25, state="readonly")
         model_combobox.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
         def open_url(url):
             webbrowser.open_new(url)
-
-        # OpenAI Disclaimer Label
-        disclaimer_frame = tk.Frame(text_model_tab)
-        disclaimer_frame.grid(row=0, column=0, columnspan=4, pady=(5, 0), sticky="w")
-
-        disclaimer_text = "  Supports any OpenAI compatible API. Read more"
-        disclaimer_label = tk.Label(disclaimer_frame, text=disclaimer_text, font=("Helvetica", 10, "italic"))
-        disclaimer_label.pack(side=tk.LEFT)
-
-        here_link = tk.Label(disclaimer_frame, text="here", font=("Helvetica", 10, "italic"), fg="blue", cursor="arrow")
-        here_link.pack(side=tk.LEFT)
-        here_link.bind("<Button-1>", lambda e: open_url("https://platform.openai.com/docs/api-reference"))
-
-        def open_url(url):
-            if os.name == 'nt':
-                os.startfile(url)
-            elif os.name == 'posix':
-                subprocess.Popen(['open', url])
-            else:
-                print(f"Unsupported operating system: {os.name}")
 
             
         def save_all_settings():
@@ -520,6 +496,7 @@ def open_settings():
         Third-Party Libraries:
         This application uses FFmpeg, which is licensed under the GNU GPLv2 or later. 
         For more details, please refer to the documentation in the repository.
+
         """
         about_label = tk.Label(about_tab, text=about_text, justify="left")
         about_label.pack(pady=10, padx=10)
