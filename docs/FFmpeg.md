@@ -11,7 +11,7 @@
 - As required by the GPL, the complete source code for this application (VOXRAD) is available here: https://github.com/drankush/voxrad/ and is licensed under GPLv3.
 - The version of FFmpeg it uses is: ffmpeg version 4.2.1-tessus
 
-## Compilation Instructions
+## Compilation Instructions for Mac
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -27,6 +27,25 @@ cd ffmpeg
 
 make -j$(sysctl -n hw.ncpu)
 
+```
+## Compilation Instructions for Windows using MSYS2 MinGW
+
+```
+$ pacman -Syu
+
+$ pacman -S base-devel git yasm pkg-config make
+
+$ pacman -S mingw-w64-x86_64-toolchain
+
+$ pacman -S mingw-w64-x86_64-lame
+
+$ git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+
+$ cd ffmpeg
+
+$ ./configure --prefix=/mingw64 --enable-gpl --enable-libmp3lame --disable-nonfree
+
+$ make -j$(nproc)
 ```
 - After compilation, the ffmpeg executable was placed in bin/ffmpeg/. This can be accessed at https://github.com/drankush/voxrad/bin/ffmpeg/.
 
