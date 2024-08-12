@@ -186,21 +186,26 @@ def open_settings():
                 print(f"Unsupported operating system: {os.name}")
 
         def save_all_transcription_settings():
+            """Saves all transcription settings to the config file."""
             config_parser = configparser.ConfigParser()
-            config_parser['DEFAULT'] = {
+            config_parser.read(get_default_config_path())  # Read existing settings
+
+            # Append new settings to existing settings
+            config_parser['DEFAULT'].update({
                 'WorkingDirectory': dir_var.get(),
                 'TranscriptionBaseURL': transcription_base_url_var.get(),
                 'SelectedTranscriptionModel': transcription_model_combobox.get()
-            }
+            })
+
             with open(get_default_config_path(), 'w') as configfile:
-                config_parser.write(configfile)
+                config_parser.write(configfile)  # Write updated settings
             config.save_directory = dir_var.get()
             config.TRANSCRIPTION_BASE_URL = transcription_base_url_var.get()
             config.SELECTED_TRANSCRIPTION_MODEL = transcription_model_combobox.get()
             update_status("Settings saved.")
 
+
         save_transcription_settings_button = tk.Button(transcription_tab, text="Save Settings", command=save_all_transcription_settings, width=12)
-        # save_transcription_settings_button.grid(row=4, column=2, padx=5, pady=(160, 0), columnspan=2, sticky="n")
         save_transcription_settings_button.grid(row=4, column=3, padx=5, pady=(160,0))
 
         # --- Tab 3: Text Model ---
@@ -322,22 +327,29 @@ def open_settings():
             else:
                 print(f"Unsupported operating system: {os.name}")
 
+            
         def save_all_settings():
+            """Saves all settings to the config file."""
             config_parser = configparser.ConfigParser()
-            config_parser['DEFAULT'] = {
+            config_parser.read(get_default_config_path())  # Read existing settings
+
+            # Append new settings to existing settings
+            config_parser['DEFAULT'].update({
                 'WorkingDirectory': dir_var.get(),
                 'TextBaseURL': base_url_var.get(),
                 'SelectedModel': model_combobox.get()
-            }
+            })
+
             with open(get_default_config_path(), 'w') as configfile:
-                config_parser.write(configfile)
+                config_parser.write(configfile)  # Write updated settings
             config.save_directory = dir_var.get()
             config.BASE_URL = base_url_var.get()
             config.SELECTED_MODEL = model_combobox.get()
             update_status("Settings saved.")
+            
+            
 
         save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=12)
-        # save_settings_button.grid(row=4, column=2, padx=5, pady=(160,0), columnspan=2, sticky="n")
         save_settings_button.grid(row=4, column=3, padx=5, pady=(160,0))
 
 
