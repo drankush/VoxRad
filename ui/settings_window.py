@@ -502,7 +502,7 @@ def open_settings():
         Description:
         VOXRAD is a voice transcription application for radiologists leveraging 
         voice transcription models and large language models to restructure and 
-        format reports as per predefined user inputs.
+        format reports as per predefined user instruction templates.
 
         Features:
         - Transcribes voice inputs accurately for radiologists.
@@ -511,11 +511,15 @@ def open_settings():
 
         Developer Information:
         Developed by: Dr. Ankush
-        🌐 www.drankush.com
+        🌐 https://github.com/drankush/voxrad
         ✉️ voxrad@drankush.com
 
         License:
         GPLv3
+
+        Third-Party Libraries:
+        This application uses FFmpeg, which is licensed under the GNU GPLv2 or later. 
+        For more details, please refer to the documentation in the repository.
         """
         about_label = tk.Label(about_tab, text=about_text, justify="left")
         about_label.pack(pady=10, padx=10)
