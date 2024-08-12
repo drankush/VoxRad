@@ -10,6 +10,7 @@ from config.config import config  # Import the config instance
 from utils.file_handling import load_templates
 from audio.transcriber import mm_gemini, transcribe_audio  # Import the transcription function
 import os
+import sys
 import threading
 
 
@@ -38,6 +39,16 @@ def retry_transcription():
     else:
         update_status("No recorded audio found to retry transcription.")
 
+def resource_path(relative_path):
+    """Get the absolute path to a resource, works for dev and for PyInstaller."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        # For dev, use the current directory
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
 
 
 def initialize_ui():
@@ -62,7 +73,7 @@ def initialize_ui():
     top_frame.grid_columnconfigure(1, weight=1)  # Make buttons column expandable
 
     # Load and resize the logo image
-    logo_image = Image.open('voxrad_mac_logo.png')
+    logo_image = Image.open(resource_path('voxrad_mac_logo.png'))
     logo_photo = ImageTk.PhotoImage(logo_image)
     logo_label = tk.Label(top_frame, image=logo_photo, bg='#0E1118')
     logo_label.image = logo_photo
