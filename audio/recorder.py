@@ -2,6 +2,7 @@ import sounddevice as sd
 import threading
 import time
 import numpy as np
+import sys
 import soundfile as sf
 import os
 import subprocess
