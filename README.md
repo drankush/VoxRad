@@ -21,63 +21,56 @@ This application leverages the power of generative AI to efficiently transcribe 
 ## Features ✨
 
 - 🎤 Voice transcription
-
 - 📝 Report formatting
-
 - 🤖 Integration with large language models
-
 - ⚙️ Customizable templates
 - 📈 Potential to extend the application for dictating other structured notes (discharge notes, OT notes or legal paperwork)
 
 
-## Installation 💻
+## 🛠️ Getting Set Up
 
-To install VOXRAD, follow these steps:
+### 💻 Installation 
 
-1. Download the `.app` file for Mac or the `.exe` file for Windows from the [releases](https://github.com/drankush/voxrad/releases).
+- Download the `.app` file for Mac or the `.exe` file for Windows from the [releases](https://github.com/drankush/voxrad/releases).
 
-## Usage 🛠️
+### 🔄 Understanding Workflow
+VOXRAD uses two ways to transcribe audio to report.
 
-### Settings ⚙️
-#### General Tab
+- Use a combination of using a transcription model to first transcribe audio and then format and restructure the transcript using instruction template.
+- Use a multimodal model to directly input the audio and instruction template to provide output.
 
-- Click and choose the working directory. Here your encrypted keys, templates, and last recorded audio file will be kept.
+Read more about the supported models [here](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/understanding-workflow#supported-llms).
 
-- There is a **Templates** folder that you can open by clicking the button **Open Templates Folder** in the General tab of settings. Here you can place `.txt` and `.md` template instruction files for various reports like HRCT Thorax, CECT Abdomen. Do trial and error to figure out how much instruction is required for your desired performance by the chosen model. You can download sample templates from the [templates](https://github.com/drankush/voxrad/tree/main/templates) folder of this repository.
+### 📄 Customizing Templates
 
-- You can insert a dictionary of words separated by commas between `[correct spellings] word1, word2, word3 [correct spellings]` inside your template `.txt` and `.md` files. These will be extracted and passed to the voice model to focus on specific words that can be mistaken.
+- Click ⚙️ Settings button at bottom right corner of the application interface.
 
-#### Transcription Model Tab 🎙️
+  -  In the first Tab  🛠 General click Browse and select your desired working directory. 
 
-- Insert the Transcription API key here. Get your Groq API key for transcription and text models from [Groq Console](https://console.groq.com/keys).
+  -  Here your encrypted keys, templates, and last recorded audio file will be kept.
 
-#### Text Model Tab 📝
+- There is a Templates folder that you can open by clicking the button Open Templates Folder in the 🛠 General  tab of settings.
 
-- Use `https://api.groq.com/openai/v1` as the Base URL for the text model. For the text model, you can use any OpenAI compatible API key and Base URL.
+  - Here you can place .txt and .md template instruction files for various reports like HRCT Thorax, CECT Abdomen, etc.
 
-  <details>
-  <summary>Read More!</summary>
-  
-  You can directly use any OpenAI compatible API. Read docs of your API provider.  For instance, use Base URL for
-  
+Read more about [Customizing templates](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/customizing-templates).
 
-  - [OpenAI](https://platform.openai.com/docs/api-reference/introduction): ```https://api.openai.com/v1/```
-  - [Gemini](https://github.com/PublicAffairs/openai-gemini): ```https://my-openai-gemini-henna.vercel.app/v1```
-    <br>❗️Cannot fetch models, model choice is set to Gemini-1.5-pro.</br>
-  - [Groq](https://console.groq.com/docs/openai): ```https://api.groq.com/openai/v1```
-  - [Ollama](https://ollama.com/blog/openai-compatibility): ```http://localhost:11434/v1```
-      
-    
 
-  <br>Search github for repositories that support transforming your provider to OpenAI compatible API. Please deploy your   own instance. This way, you can keep your API key secure.</br>
-  
-  </details>
+### 🔐 Managing Keys
 
+- You can encrypt keys of transcription, text and multimodal models with password and even lock and unlock them while the application is in use. The application will ask for this password every time you start the applicaiton if encrypted keys are stored in working directory.
+- In the "Base URL" field,  enter the base URL in OpenAI compatible format. Enter API key in the in the "API Key" field.
+- You can use any OpenAI-compatible API key and Base URL and even locally deployed models which create OpenAI compatible endpoints.
 - Click **Fetch Model** to see the available models and choose one.
-
 - Click **Save Settings** to save your selected model and Base URL (these are not encrypted).
+Read more about managing keys, best practices and troubleshooting [here](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys).
 
-- You can encrypt and save your keys by giving a password in the settings. The application will ask for this password every time you open it to unlock the API keys for the transcription model and text model separately.
+### 🖥️ Running Models Locally
+
+- There are [various ways](https://voxrad.gitbook.io/voxrad/running-models-locally) to run models locally and create OpenAI compatible endpoints which can then used with this application.
+- You can also input OpenAI compatible Base URL and API key of [any remotely hosted service](https://voxrad.gitbook.io/voxrad/running-models-locally#remotely-hosted-models), however this is not recommended for sensitive data. For example: Groq: https://api.groq.com/openai/v1
+
+## Usage 
 
 ### Main App Window 🎙
 
@@ -87,13 +80,23 @@ To install VOXRAD, follow these steps:
 
 - The final formatted and structured report will be automatically posted on your clipboard. You can then directly paste (Ctrl/Cmd + V) it into your application, word processor, or PACS.
 
+Read detailed documentation of generating a report [here](https://voxrad.gitbook.io/voxrad/user-guide/generating-a-report).
+
+## Documentation 📚
+
+Read comprehensive VOXRAD documentation [here](http://voxrad.gitbook.io/voxrad).
+
 ## Contributing 🌟
 
-Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) before getting started.
+VOXRAD is a community-driven project, and we're grateful for the contributions of our team members. Read about the [key contributors](https://voxrad.gitbook.io/voxrad/support-and-contact/contributors). Please read the [contributing guidelines](CONTRIBUTING.md) before getting started.
 
 ## License 📜
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
+
+## Third-Party Libraries:
+
+This application uses FFmpeg, which is licensed under the GNU General Public License (GPL) version 2 or later. For more details, please refer to the [documentation](https://github.com/drankush/voxrad/docs/FFmpeg.md/) in the repository.
 
 ## Support 🐞
 
@@ -102,12 +105,6 @@ To report bugs or issues, please follow [this guide](https://github.com/drankush
 ## Contact 📧
 
 For any other questions, support or appreciation, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
-
-## Acknowledgments 🙏
-
-- [Groq](https://groq.com) for providing API for Whisper-large-v3 voice-to-text model and LLaMA3-70b-8192 and other LLMs.
-- [Meta](https://meta.ai) for open-source LLaMA series models.
-- [Open AI](https://openai.com) for open-source Whisper-large-v3 voice-to-text model.
 
 ## Disclaimer 🚨
 
