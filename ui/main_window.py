@@ -9,6 +9,7 @@ from ui.utils import initialize_status_var, update_status, draw_straight_line, s
 from config.config import config  # Import the config instance
 from utils.file_handling import load_templates
 from audio.transcriber import mm_gemini, transcribe_audio  # Import the transcription function
+from utils.file_handling import resource_path
 import os
 import sys
 import threading
@@ -38,17 +39,6 @@ def retry_transcription():
             threading.Thread(target=transcribe_audio, args=(recorded_audio_path,), daemon=True).start()
     else:
         update_status("No recorded audio found to retry transcription.")
-
-def resource_path(relative_path):
-    """Get the absolute path to a resource, works for dev and for PyInstaller."""
-    try:
-        # PyInstaller creates a temp folder and stores path in _MEIPASS
-        base_path = sys._MEIPASS
-    except Exception:
-        # For dev, use the current directory
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)
 
 
 def initialize_ui():
