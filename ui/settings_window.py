@@ -184,7 +184,7 @@ def open_settings():
             webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
         docs_button = tk.Button(transcription_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
-        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
+        docs_button.grid(row=1, column=2, padx=5, pady=5, sticky="w")  # Position above the save button
 
         def save_all_transcription_settings():
             """Saves all transcription settings to the config file."""
@@ -276,7 +276,7 @@ def open_settings():
             webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
         docs_button = tk.Button(text_model_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
-        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
+        docs_button.grid(row=1, column=2, padx=5, pady=5, sticky="w")  # Position above the save button
         
         
         
