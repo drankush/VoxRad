@@ -10,7 +10,8 @@ from utils.file_handling import move_files, load_templates
 from utils.encryption import save_transcription_key, save_text_key, delete_transcription_key, delete_text_api_key, fetch_models, fetch_transcription_models, get_password_from_user, load_transcription_key, load_text_key
 from utils.encryption import save_mm_key, delete_mm_key, load_mm_key
 from config.settings import save_settings, get_default_config_path
-
+import shutil
+from utils.file_handling import resource_path
 
 def open_settings():
     """Opens the settings dialog box with additional fields for settings."""
@@ -48,11 +49,24 @@ def open_settings():
         # browse_button = tk.Button(general_tab, text="Browse", command=browse_directory)
         browse_button = tk.Button(general_tab, text="Browse", command=lambda: browse_directory())
         browse_button.grid(row=0, column=2, padx=5, pady=5)
-        
+
+
         def open_templates_folder():
             templates_path = os.path.join(config.save_directory, "templates")
             if not os.path.exists(templates_path):
                 os.makedirs(templates_path)
+            
+            # List of template files to copy
+            template_files_to_copy = ["HRCT_Thorax.txt"]
+            
+            # Copy specified template files from resource path to the working directory
+            for template_file in template_files_to_copy:
+                source_file = resource_path(os.path.join("templates", template_file))
+                destination_file = os.path.join(templates_path, template_file)
+                if os.path.exists(source_file) and not os.path.exists(destination_file):
+                    shutil.copy2(source_file, destination_file)
+                    print(f"Copied {template_file} to {destination_file}")
+
             if os.name == 'nt':
                 os.startfile(templates_path)
             elif os.name == 'posix':
