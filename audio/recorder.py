@@ -158,15 +158,44 @@ def save_audio_as_wav(audio_data, fs):
     sf.write(file_path, audio_data, fs)
     return file_path
 
+
+def get_ffmpeg_path():
+    """Return the path to the bundled ffmpeg executable."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    ffmpeg_dir = os.path.join(base_dir, 'bin', 'ffmpeg')
+    
+    # Check if ffmpeg is a file or a directory
+    if os.path.isdir(ffmpeg_dir):
+        # If it's a directory, look for the ffmpeg executable inside
+        if sys.platform == "win32":
+            ffmpeg_path = os.path.join(ffmpeg_dir, 'ffmpeg.exe')
+        else:
+            ffmpeg_path = os.path.join(ffmpeg_dir, 'ffmpeg')
+    else:
+        # If it's not a directory, assume ffmpeg is the executable itself
+        ffmpeg_path = ffmpeg_dir
+
+    if not os.path.exists(ffmpeg_path):
+        print(f"FFmpeg not found at: {ffmpeg_path}")
+        return None
+    
+    print(f"FFmpeg found at: {ffmpeg_path}")
+    return ffmpeg_path
+
 def convert_wav_to_mp3(wav_path):
-    """Converts a WAV file to MP3 format using ffmpeg, targeting a maximum file size."""
+    """Converts a WAV file to MP3 format using the bundled ffmpeg, targeting a maximum file size."""
+    ffmpeg_path = get_ffmpeg_path()
+    if not ffmpeg_path:
+        print("Error: FFmpeg is not found. Please ensure FFmpeg is installed and accessible.")
+        return None
+
     mp3_path = wav_path.replace(".wav", ".mp3")
     target_size_bytes = 25 * 1024 * 1024  # 25MB in bytes
     bitrate = 128  # Initial bitrate (kbps)
 
     while True:
         command = [
-            "ffmpeg",
+            ffmpeg_path,
             "-y",
             "-i",
             str(wav_path),
@@ -200,3 +229,4 @@ def convert_wav_to_mp3(wav_path):
         except subprocess.CalledProcessError as e:
             print(f"Error during conversion: {e}")
             return None  # Return None to indicate an error
+
