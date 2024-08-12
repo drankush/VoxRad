@@ -2,7 +2,7 @@
   <img src="images/voxrad_logo.jpg" alt="VOXRAD Logo" />
 </p>
 
-# VOXRAD 🚀
+# 🚀 VOXRAD 
 
 VOXRAD is a voice transcription application for radiologists leveraging voice transcription models and large language models to restructure and format reports as per predefined user instruction templates.
 
@@ -18,7 +18,7 @@ This application leverages the power of generative AI to efficiently transcribe 
 
 2. An AI-driven app transforming radiology reporting through voice transcription, enhancing accuracy in medical documentation.
 
-## Features ✨
+## ✨ Features 
 
 - 🎤 Voice transcription
 - 📝 Report formatting
@@ -70,9 +70,9 @@ Read more about managing keys, best practices and troubleshooting [here](https:/
 - There are [various ways](https://voxrad.gitbook.io/voxrad/running-models-locally) to run models locally and create OpenAI compatible endpoints which can then used with this application.
 - You can also input OpenAI compatible Base URL and API key of [any remotely hosted service](https://voxrad.gitbook.io/voxrad/running-models-locally#remotely-hosted-models), however this is not recommended for sensitive data. For example: Groq: https://api.groq.com/openai/v1
 
-## Usage 
+## 🖱️ Usage 
 
-### Main App Window 🎙
+### 🎙 Main App Window 
 
 - Press the **Record 🔴** button and start dictating your report, keep it around max 15 minutes, as the file sent limit is 25 MB (the application will try to reduce the bitrate to accommodate this size for longer audios). You will see a waveform while the audio is recorded.
 
@@ -82,31 +82,31 @@ Read more about managing keys, best practices and troubleshooting [here](https:/
 
 Read detailed documentation of generating a report [here](https://voxrad.gitbook.io/voxrad/user-guide/generating-a-report).
 
-## Documentation 📚
+## 📚 Documentation 
 
 Read comprehensive VOXRAD documentation [here](http://voxrad.gitbook.io/voxrad).
 
-## Contributing 🌟
+## 🌟 Contributing 
 
 VOXRAD is a community-driven project, and we're grateful for the contributions of our team members. Read about the [key contributors](https://voxrad.gitbook.io/voxrad/support-and-contact/contributors). Please read the [contributing guidelines](CONTRIBUTING.md) before getting started.
 
-## License 📜
+## 📜 License 
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
-## Third-Party Libraries:
+## 🧩 Third-Party Libraries:
 
 This application uses FFmpeg, which is licensed under the GNU General Public License (GPL) version 2 or later. For more details, please refer to the [documentation](https://github.com/drankush/voxrad/docs/FFmpeg.md/) in the repository.
 
-## Support 🐞
+## 🐞 Support 
 
 To report bugs or issues, please follow [this guide](https://github.com/drankush/voxrad/blob/main/contributing.md#reporting-bugs) on how to report bugs.
 
-## Contact 📧
+## 📧 Contact 
 
 For any other questions, support or appreciation, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
 
-## Disclaimer 🚨
+## 🚨 Disclaimer 
 
 This is a pure demonstrative application for the capabilities of AI and may not be compliant with local regulations of handling sensitive and private data. This is not intended for any diagnostic and clinical use. Please read the terms of use of the API keys that you will be using.
 
