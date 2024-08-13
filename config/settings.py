@@ -31,6 +31,7 @@ def load_settings():
         config.SELECTED_MODEL = config_parser["DEFAULT"].get("SelectedModel", "llama3.1:latest")
         config.multimodal_pref = config_parser["DEFAULT"].getboolean("MultimodalPref", False)
         config.multimodal_model = config_parser["DEFAULT"].get("MultimodalModel", None)
+        config.audio_device = config_parser['DEFAULT'].get('AudioDevice', config.audio_device)  
     else:
         print("Warning: 'DEFAULT' section not found in settings.ini. Using default values.")
         config.save_directory = os.path.dirname(config_path)
@@ -90,6 +91,7 @@ def save_settings():
         "SelectedModel": config.SELECTED_MODEL,
         "MultimodalPref": config.multimodal_pref,
         "MultimodalModel": str(config.multimodal_model),  # Convert to string before saving
+        "AudioDevice": config.audio_device  # Add the audio device setting
     }
     with open(get_default_config_path(), "w") as configfile:
         config_parser.write(configfile)
