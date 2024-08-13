@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, simpledialog, messagebox
 import subprocess
 import webbrowser
+import sounddevice as sd
 from ui.utils import update_status
 from config.config import config
 from utils.file_handling import move_files, load_templates
@@ -32,7 +33,7 @@ def open_settings():
         dir_label.grid(row=0, column=0, padx=5, pady=5)
         dir_var = tk.StringVar(general_tab, value=config.save_directory)
         dir_entry = tk.Entry(general_tab, textvariable=dir_var, width=30)
-        dir_entry.grid(row=0, column=1, padx=5, pady=5)
+        dir_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
 
         def browse_directory():
             print(config.template_dropdown)
@@ -47,7 +48,7 @@ def open_settings():
                 load_templates()  # Pass template_dropdown
 
         # browse_button = tk.Button(general_tab, text="Browse", command=browse_directory)
-        browse_button = tk.Button(general_tab, text="Browse", command=lambda: browse_directory())
+        browse_button = tk.Button(general_tab, text="Browse", command=lambda: browse_directory(), width=12)
         browse_button.grid(row=0, column=2, padx=5, pady=5)
 
 
@@ -75,7 +76,31 @@ def open_settings():
                 print(f"Unsupported operating system: {os.name}")
 
         open_templates_button = tk.Button(general_tab, text="Open Templates Folder", command=open_templates_folder)
-        open_templates_button.grid(row=1, column=1, padx=5, pady=5)
+        open_templates_button.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+
+        audio_device_label = tk.Label(general_tab, text="Audio Input Device:")
+        audio_device_label.grid(row=2, column=0, padx=5, pady=5)
+
+        audio_device_var = tk.StringVar(general_tab, value=config.audio_device)  # Initialize with the current setting
+        audio_device_dropdown = ttk.Combobox(general_tab, textvariable=audio_device_var, state="readonly", width=25)
+        audio_device_dropdown['values'] = [device['name'] for device in sd.query_devices() if device['max_input_channels'] > 0]
+        audio_device_dropdown.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+
+        # Function to save the selected audio device
+        def save_audio_device():
+            config.audio_device = audio_device_var.get()
+            save_settings()
+            update_status("Audio device saved.")
+
+        save_audio_device_button = tk.Button(general_tab, text="Save", command=save_audio_device, width=12)
+        save_audio_device_button.grid(row=2, column=2, padx=5, pady=5, sticky="w")
+
+
+
+
+
+
 
         # --- Tab 2: Transcription Model ---
         transcription_tab = ttk.Frame(tab_control)
@@ -184,7 +209,7 @@ def open_settings():
             webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
         docs_button = tk.Button(transcription_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
-        docs_button.grid(row=1, column=2, padx=5, pady=5, sticky="w")  # Position above the save button
+        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
 
         def save_all_transcription_settings():
             """Saves all transcription settings to the config file."""
@@ -276,7 +301,7 @@ def open_settings():
             webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
         docs_button = tk.Button(text_model_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
-        docs_button.grid(row=1, column=2, padx=5, pady=5, sticky="w")  # Position above the save button
+        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
         
         
         
