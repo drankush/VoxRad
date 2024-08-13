@@ -2,9 +2,9 @@ import sounddevice as sd
 import threading
 import time
 import numpy as np
-import sys
 import soundfile as sf
 import os
+import sys
 import subprocess
 from config.config import config  
 from audio.transcriber import transcribe_audio, mm_gemini
@@ -17,7 +17,6 @@ audio_data = []  # Use a list to collect chunks
 start_time = None
 recording_thread = None
 pause_event = threading.Event()
-
 
 def record_audio():
     """Starts audio recording after checking for API keys."""
@@ -40,10 +39,30 @@ def record_audio():
     record_button['state'] = 'disabled'
     stop_button['state'] = 'normal'
     pause_button['state'] = 'normal'  # Enable pause button
-    recording_thread = threading.Thread(target=background_recording, daemon=True)
+
+    # Check if audio device is set in settings
+    if config.audio_device is None:
+        update_status("Please select an audio device in settings.")
+        return  # Stop recording if no device is selected
+
+    # Get the device index from the saved audio device name
+    device_index = None
+    devices = sd.query_devices()
+    for i, device in enumerate(devices):
+        if device['name'] == config.audio_device:
+            device_index = i
+            break
+
+    # If the device index is still None, it means the saved device is not found
+    if device_index is None:
+        update_status("Selected audio device not found. Please check settings.")
+        return 
+
+    recording_thread = threading.Thread(target=background_recording, args=(device_index,), daemon=True)
     recording_thread.start()
     update_status("Recording 🔴")
     start_waveform_simulation(canvas, root)  # Start simulating the waveform
+
 
 def pause_audio():
     global paused, pause_event
@@ -66,14 +85,20 @@ def pause_audio():
         update_status("Recording 🔴")
         start_waveform_simulation(canvas, root)  # Resume waveform simulation
 
-def background_recording():
+
+
+
+def background_recording(device_index=None):
     global audio_data, start_time, recording, paused, pause_event
     fs = 44100  # Sample rate
     start_time = time.time()
 
     try:
         # Prepare recording stream
-        stream = sd.InputStream(samplerate=fs, channels=1, dtype='float32')
+        if device_index is not None:
+            stream = sd.InputStream(samplerate=fs, channels=1, dtype='float32', device=device_index)
+        else:
+            stream = sd.InputStream(samplerate=fs, channels=1, dtype='float32')
         stream.start()
         print("Recording started...")
 
@@ -102,6 +127,8 @@ def background_recording():
 
     if not recording:
         update_status("Started Processing...⚙️")
+
+
 
 def stop_recording():
     global recording, audio_data, start_time, recording_thread
@@ -230,4 +257,3 @@ def convert_wav_to_mp3(wav_path):
         except subprocess.CalledProcessError as e:
             print(f"Error during conversion: {e}")
             return None  # Return None to indicate an error
-
