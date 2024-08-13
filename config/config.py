@@ -12,5 +12,6 @@ class Config:
     multimodal_pref = False  # Add this line
     multimodal_model = None  # Add this line
     MM_API_KEY = None  # Add this line
+    audio_device = None
 
 config = Config()
