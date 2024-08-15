@@ -45,7 +45,10 @@ def initialize_ui():
     global root, canvas, record_button, stop_button, pause_button, template_dropdown, recording
 
     root = tk.Tk()
-    root.title("VOXRAD MAC")
+    if os.name == "nt":
+        root.title("VOXRAD WIN")
+    else:
+        root.title("VOXRAD MAC")
     root.configure(bg='#0E1118')
     root.geometry("250x300")
     root.resizable(width=False, height=False)
@@ -108,12 +111,20 @@ def initialize_ui():
     config.template_dropdown.bind("<<ComboboxSelected>>", lambda event: on_template_select(event))
 
     # Retry Button
-    retry_button = tk.Button(bottom_frame, text="🔄", command=retry_transcription, width=1, height=1)
-    retry_button.grid(row=0, column=1, padx=0)
+    if os.name == "nt":
+        retry_button = tk.Button(bottom_frame, text="⟳", command=retry_transcription, width=3, height=1)
+        retry_button.grid(row=0, column=1, padx=0)
+    else:
+        retry_button = tk.Button(bottom_frame, text="🔄", command=retry_transcription, width=1, height=1)
+        retry_button.grid(row=0, column=1, padx=0)
 
     # Settings Button
-    settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=1, height=1)
-    settings_button.grid(row=0, column=2, padx=(0, 10))
+    if os.name == "nt":
+        settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=3, height=1)
+        settings_button.grid(row=0, column=2, padx=(0, 10))
+    else:
+        settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=1, height=1)
+        settings_button.grid(row=0, column=2, padx=(0, 10))
 
     # Load templates
     load_templates()
