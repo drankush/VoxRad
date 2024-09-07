@@ -74,6 +74,11 @@ Read more about managing keys, best practices and troubleshooting [here](https:/
 
 ### 🎙 Main App Window 
 
+<p align="center">
+  <img src="images/voxrad_gui.jpg" alt="VOXRAD Logo" />
+</p>
+
+
 - Press the **Record 🔴** button and start dictating your report, keep it around max 15 minutes, as the file sent limit is 25 MB (the application will try to reduce the bitrate to accommodate this size for longer audios). You will see a waveform while the audio is recorded.
 
 - Press **Stop ⬜️** to stop recording. Your audio will be processed.
