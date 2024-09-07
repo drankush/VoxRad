@@ -3,10 +3,10 @@ from ui.utils import update_status
 from config.config import config  
 
 def format_text(text):
-    """Formats the given text using OpenAI's API."""
+    """Formats the given text using Text API."""
     try:
-        client = OpenAI(api_key=config.OPENAI_API_KEY, base_url=config.BASE_URL)
-        # print(config.OPENAI_API_KEY)  # for debugging only
+        client = OpenAI(api_key=config.TEXT_API_KEY, base_url=config.BASE_URL)
+        # print(config.TEXT_API_KEY)  # for debugging only
         # print(config.global_md_text_content)  # for debugging only
         completion = client.chat.completions.create(
             model=config.SELECTED_MODEL,
@@ -51,9 +51,9 @@ This is the report template format as chosen by the user:
                 update_status("Performing AI analysis.🤖")
                 return summary
             else:
-                update_status("No content in the message returned by OpenAI.")
+                update_status("No content in the message returned by the Model.")
         else:
-            update_status("No choices returned by OpenAI.")
+            update_status("No choices returned by the Model.")
     except Exception as e:
         update_status(f"Failed to generate summary. Error: {str(e)}")
     return None
