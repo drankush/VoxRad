@@ -5,8 +5,8 @@
 <div align="center">
   
 [![Python Badge](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=for-the-badge)](#)
-[![GitBook Badge](https://img.shields.io/badge/GitBook-BBDDE5?logo=gitbook&logoColor=000&style=for-the-badge)](https://voxrad.gitbook.io/voxrad)
 [![FFmpeg Badge](https://img.shields.io/badge/FFmpeg-007808?logo=ffmpeg&logoColor=fff&style=for-the-badge)](https://github.com/drankush/voxrad/docs/FFmpeg.md)
+[![GitBook Badge](https://img.shields.io/badge/GitBook-BBDDE5?logo=gitbook&logoColor=000&style=for-the-badge)](https://voxrad.gitbook.io/voxrad)
 
 
 [![Release](https://flat.badgen.net/badge/release/0.1.0-beta/blue?icon=github)](https://github.com/drankush/voxrad/releases)
