@@ -2,6 +2,25 @@
   <img src="images/voxrad_logo.jpg" alt="VOXRAD Logo" />
 </p>
 
+<div align="center">
+  
+[![Python Badge](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=for-the-badge)](#)
+[![GitBook Badge](https://img.shields.io/badge/GitBook-BBDDE5?logo=gitbook&logoColor=000&style=for-the-badge)](https://voxrad.gitbook.io/voxrad)
+[![FFmpeg Badge](https://img.shields.io/badge/FFmpeg-007808?logo=ffmpeg&logoColor=fff&style=for-the-badge)](https://github.com/drankush/voxrad/docs/FFmpeg.md)
+
+
+![Release](https://flat.badgen.net/badge/release/0.1.0-beta/blue?icon=github)
+![License](https://flat.badgen.net/badge/license/GPLv3/green?icon=github)
+![Open Issues](https://flat.badgen.net/badge/issues/open-01/orange?icon=github)
+![Closed Issues](https://flat.badgen.net/badge/issues/closed-19/red?icon=github)
+![Python Version](https://flat.badgen.net/badge/python/3.11%20|%203.12/blue?icon=github)
+
+
+![Apple](https://flat.badgen.net/badge/icon/apple?icon=apple&label)
+![Windows](https://flat.badgen.net/badge/icon/windows?icon=windows&label)
+
+</div>
+
 # 🚀 VOXRAD 
 
 VOXRAD is a voice transcription application for radiologists leveraging voice transcription models and large language models to restructure and format reports as per predefined user instruction templates.
