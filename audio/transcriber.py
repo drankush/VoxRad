@@ -40,7 +40,10 @@ def transcribe_audio(mp3_path):
             stripped_text = strip_markdown(formatted_text)
             pyperclip.copy(stripped_text)
             save_report(stripped_text)  # Save the report to a file
-            update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Ctrl+V to paste the saved report into your application.✨")
+            if os.name == "nt":
+                update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Ctrl+V to paste the saved report into your application.✨")
+            else:
+                update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Cmd+V to paste the saved report into your application.✨")
         except Exception as e:
             update_status("Some error occurred. Please check both API keys are saved and/or network connection.")
             print(f"Error details: {e}")
@@ -70,7 +73,10 @@ This is the report template format as chosen by the user:
             stripped_text = strip_markdown(response.text)  # Strip markdown
             pyperclip.copy(stripped_text)  # Copy to clipboard
             save_report(stripped_text)  # Save the report
-            update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Ctrl+V to paste the saved report into your application.✨")
+            if os.name == "nt":
+                update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Ctrl+V to paste the saved report into your application.✨")
+            else:
+                update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Cmd+V to paste the saved report into your application.✨")
             return stripped_text  # Return the processed text
         else:
             update_status("No text returned by the multimodal model.")
