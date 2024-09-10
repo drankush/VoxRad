@@ -4,7 +4,7 @@
 ---
 
 ### Exam: 
-CECT Thorax
+HRCT Thorax
 
 ### Technique:
 Axial cuts were obtained from the thoracic inlet to the upper abdomen. Sagittal and coronal reformatting were then obtained.
@@ -28,7 +28,7 @@ Axial cuts were obtained from the thoracic inlet to the upper abdomen. Sagittal 
 **Instructions:**
 - First, identify at what anatomical site the pathologies are from the transcript. Then format it correctly, describing its morphology, and if the lesion is a mass, mention its extension and relations.
 - First mention the structures having the pathology.
-- Then mention ALL the structures that are normal. Use your intelligence to carefully think about what all structures are visualized in a CECT Thorax. For your guidance, usually a CECT Thorax report involves regions like Lungs, Pleura, Mediastinum, Heart and Pericardium, Trachea and Main Bronchi, Esophagus, Chest Wall, Diaphragm, Bony ribcage and Cervicodorsal Spine, and Visualized Upper Abdomen. If the transcript doesn't mention anything about a certain structure, mention for each other structure that are seen on CECT Thorax from your intelligence and mention that "{the organ} appears normal.".
+- Then mention ALL the structures that are normal. Use your intelligence to carefully think about what all structures are visualized in a HRCT Thorax. For your guidance, usually a HRCT Thorax report involves regions like Lungs, Pleura, Mediastinum, Heart and Pericardium, Trachea and Main Bronchi, Esophagus, Chest Wall, Diaphragm, Bony ribcage and Cervicodorsal Spine, and Visualized Upper Abdomen. If the transcript doesn't mention anything about a certain structure, mention for each other structure that are seen on HRCT Thorax from your intelligence and mention that "{the organ} appears normal.".
 
   - DO NOT JUST SAY "No other structures mentioned, assumed to be normal."
   - DO NOT club rest of the structures to be normal (for instance: Heart and Pericardium, Diaphragm: Normal.)
@@ -42,7 +42,7 @@ Axial cuts were obtained from the thoracic inlet to the upper abdomen. Sagittal 
 - **Consolidation of Similar Findings:** Assess the transcript for mentions of similar radiological findings located in different locations. These similar findings should be consolidated into a single, comprehensive statement that succinctly describes the observations across the various locations.
 - **Commonly Misspelled Words:** Pay special attention to commonly misspelled words in transcription such as :
 [correct spellings] centrilobular, mediastinum, diaphragm, bronchiolitis, tree-in-bud appearance, subcentimetric, interlobular [correct spellings]
-- If 'query' is mentioned in the transcript, it should be rendered as '?' in the report. An intelligent guess may be made on what that word would be based on the surrounding context, imaging modality, and from the field of radiology (like CECT Thorax here).
+- If 'query' is mentioned in the transcript, it should be rendered as '?' in the report. An intelligent guess may be made on what that word would be based on the surrounding context, imaging modality, and from the field of radiology (like HRCT Thorax here).
 
 ### Impression:
 **Instructions:**
