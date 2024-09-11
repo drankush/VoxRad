@@ -102,9 +102,6 @@ This application uses FFmpeg, which is licensed under the GNU General Public Lic
 
 To report bugs or issues, please follow [this guide](https://github.com/drankush/voxrad/blob/main/contributing.md#reporting-bugs) on how to report bugs.
 
-## 📧 Contact 
-
-For any other questions, support or appreciation, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
 
 ## 🚨 Disclaimer 
 
