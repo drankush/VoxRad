@@ -128,7 +128,7 @@ To report bugs or issues, please follow [this guide](https://github.com/drankush
 
 ## 📧 Contact 
 
-For any other questions, support or appreciation, please contact [Dr. Ankush](mailto:voxrad@drankush.com).
+For any other questions, support or appreciation, please contact [here](mailto:voxrad@drankush.com).
 
 ## 🚨 Disclaimer 
 
