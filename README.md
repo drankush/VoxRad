@@ -51,6 +51,7 @@ This application leverages the power of generative AI to efficiently transcribe 
 ### 💻 Installation 
 
 - Download the `.app` file for Mac or the `.exe` file for Windows from the [releases](https://github.com/drankush/voxrad/releases).
+- Reveiwers can download from [cloud storage](https://1drv.ms/f/s!An5fb_Sh97aUhc9M46yXdNnNGqnG4g?e=AJ3tHJ), by entering password 'CPDR'.
 
 ### 🔄 Understanding Workflow
 VOXRAD uses two ways to transcribe audio to report.
