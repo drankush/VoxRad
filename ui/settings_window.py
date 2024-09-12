@@ -498,7 +498,7 @@ def open_settings():
 
         about_text = """
         Application Name: VOXRAD
-        Version: v1.2
+        Version: v0.1.0
 
         Description:
         VOXRAD is a voice transcription application for radiologists leveraging 
