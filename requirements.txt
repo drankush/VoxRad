@@ -8,7 +8,6 @@ colour==0.1.5
 cryptography==42.0.8
 distro==1.9.0
 google-generativeai==0.7.2
-groq==0.9.0
 grpcio==1.64.1
 grpcio-status==1.62.2
 h11==0.14.0
