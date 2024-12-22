@@ -40,9 +40,9 @@ def transcribe_audio(mp3_path):
             pyperclip.copy(stripped_text)
             save_report(stripped_text)  # Save the report to a file
             if os.name == "nt":
-                update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Ctrl+V to paste the saved report into your application.✨")
+                update_status(f"Report saved. Ctrl+V to paste the saved report into your application from Clipboard.✨")
             else:
-                update_status(f"Report saved to {config.save_directory}/reports/ and Clipboard. Cmd+V to paste the saved report into your application.✨")
+                update_status(f"Report saved. Cmd+V to paste the saved report into your application from Clipboard.✨")
         except Exception as e:
             update_status("Some error occurred. Please check both API keys are saved and/or network connection.")
             print(f"Error details: {e}")
