@@ -66,7 +66,7 @@ def load_settings():
             if not load_text_key(text_key_path, password):
                 messagebox.showerror("Error", "Incorrect password for Text Model Key.")
     else:
-        update_status("Kindly save the keys in settings.")
+        update_status("Kindly save the Text Model key in settings.")
 
     # MM Key Handling
     salt_path = os.path.join(config.save_directory, ".mm_salt")  # Update salt file name
@@ -77,7 +77,7 @@ def load_settings():
             if not load_mm_key(mm_key_path, password):
                 messagebox.showerror("Error", "Incorrect password for Multimodal Model Key.")
     else:
-        update_status("Kindly save the keys in settings.")
+        pass  # No need to show a message here. MM is experimental.
 
 
 def save_settings():
