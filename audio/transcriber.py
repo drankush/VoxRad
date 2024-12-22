@@ -1,4 +1,3 @@
-from groq import Groq
 from openai import OpenAI
 import re
 import pyperclip
