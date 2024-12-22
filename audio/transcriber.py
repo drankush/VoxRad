@@ -52,21 +52,20 @@ def mm_gemini(mp3_path):
     """Generates text from audio using the multimodal Gemini model."""
     try:
         update_status("Performing AI analysis.🤖")
-        # print(f"MM_API_KEY: {config.MM_API_KEY}")  # Print MM_API_KEY
-        # print(f"Audio Path: {mp3_path}")  # Print the audio path
+
         genai.configure(api_key=config.MM_API_KEY)
         audio_file = genai.upload_file(path=mp3_path)
         model = genai.GenerativeModel(model_name=config.multimodal_model)
-        # print(f"Multimodal Model: {config.multimodal_model}")  # Print the selected model
+
         prompt = f"""
 The provided audio is as dictated by a radiologist regarding a report of radiological study. Format is according to a standard radiological report.         
 This is the report template format as chosen by the user:
 {config.global_md_text_content}
 
                             """
-        # print(f"Prompt: {prompt}")  # Print the prompt
+
         response = model.generate_content([prompt, audio_file])
-        # print(response.text)
+
         # Extract the text from the response
         if response.text:
             stripped_text = strip_markdown(response.text)  # Strip markdown
