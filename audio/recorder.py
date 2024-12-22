@@ -8,7 +8,7 @@ import sys
 import subprocess
 from config.config import config  
 from audio.transcriber import transcribe_audio, mm_gemini
-from ui.utils import update_status, simulate_waveform, draw_straight_line, stop_waveform_simulation, start_waveform_simulation
+from ui.utils import update_status, draw_straight_line, stop_waveform_simulation, start_waveform_simulation
 
 # Global variables
 recording = False
@@ -188,27 +188,58 @@ def save_audio_as_wav(audio_data, fs):
 
 
 def get_ffmpeg_path():
-    """Return the path to the bundled ffmpeg executable."""
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    ffmpeg_dir = os.path.join(base_dir, 'bin', 'ffmpeg')
-    
-    # Check if ffmpeg is a file or a directory
-    if os.path.isdir(ffmpeg_dir):
-        # If it's a directory, look for the ffmpeg executable inside
+    """Return the path to the bundled ffmpeg executable, platform-aware."""
+    if getattr(sys, 'frozen', False):
+        # Running as a bundled executable
+        base_dir_bundled = sys._MEIPASS
+        if sys.platform == "win32":
+            ffmpeg_path = os.path.join(base_dir_bundled, 'bin', 'ffmpeg', 'ffmpeg.exe')
+        elif sys.platform == "darwin":
+            ffmpeg_path = os.path.join(base_dir_bundled, 'bin', 'ffmpeg', 'ffmpeg')
+        else:
+            print(f"Unsupported platform: {sys.platform}")
+            return None 
+    else:
+        # Running as a script (development)
+        base_dir_dev = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        ffmpeg_dir = os.path.join(base_dir_dev, 'bin', 'ffmpeg')
         if sys.platform == "win32":
             ffmpeg_path = os.path.join(ffmpeg_dir, 'ffmpeg.exe')
-        else:
+        elif sys.platform == "darwin":
             ffmpeg_path = os.path.join(ffmpeg_dir, 'ffmpeg')
-    else:
-        # If it's not a directory, assume ffmpeg is the executable itself
-        ffmpeg_path = ffmpeg_dir
+        else:
+            print(f"Unsupported platform: {sys.platform}")
+            return None
 
     if not os.path.exists(ffmpeg_path):
         print(f"FFmpeg not found at: {ffmpeg_path}")
         return None
-    
+
     print(f"FFmpeg found at: {ffmpeg_path}")
     return ffmpeg_path
+
+# def get_ffmpeg_path():
+#     """Return the path to the bundled ffmpeg executable."""
+#     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#     ffmpeg_dir = os.path.join(base_dir, 'bin', 'ffmpeg')
+    
+#     # Check if ffmpeg is a file or a directory
+#     if os.path.isdir(ffmpeg_dir):
+#         # If it's a directory, look for the ffmpeg executable inside
+#         if sys.platform == "win32":
+#             ffmpeg_path = os.path.join(ffmpeg_dir, 'ffmpeg.exe')
+#         else:
+#             ffmpeg_path = os.path.join(ffmpeg_dir, 'ffmpeg')
+#     else:
+#         # If it's not a directory, assume ffmpeg is the executable itself
+#         ffmpeg_path = ffmpeg_dir
+
+#     if not os.path.exists(ffmpeg_path):
+#         print(f"FFmpeg not found at: {ffmpeg_path}")
+#         return None
+    
+#     print(f"FFmpeg found at: {ffmpeg_path}")
+#     return ffmpeg_path
 
 def convert_wav_to_mp3(wav_path):
     """Converts a WAV file to MP3 format using the bundled ffmpeg, targeting a maximum file size."""
