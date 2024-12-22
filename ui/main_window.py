@@ -1,14 +1,15 @@
 import tkinter as tk
 from tkinter import ttk
-from PIL import Image, ImageTk
-from audio.recorder import record_audio, stop_recording, pause_audio
-from utils.file_handling import update_template_dropdown, on_template_select, load_templates
-from ui.settings_window import open_settings
-from ui.utils import initialize_status_var, update_status, draw_straight_line, simulate_waveform
 from config.config import config
+from audio.recorder import record_audio, stop_recording, pause_audio
+from config.settings import load_settings
+from ui.settings_window import open_settings
+from ui.utils import initialize_status_var, update_status, draw_straight_line
 from audio.transcriber import mm_gemini, transcribe_audio
 from utils.file_handling import resource_path
+from utils.file_handling import  on_template_select, load_templates
 import os
+
 
 # Global variables
 recording = False
@@ -128,6 +129,10 @@ def initialize_ui():
         settings_button = tk.Button(bottom_frame, text="⚙️", command=open_settings, width=1, height=1)
         settings_button.grid(row=0, column=2, padx=(0, 10))
 
+
+    # Load settings and keys on startup
+    load_settings()  # This initializes save_directory
+    
     # Load templates
     load_templates()
 
