@@ -12,7 +12,7 @@ import os
 pressed_keys = set()
 shortcut_active = False
 last_execution_time = 0
-DEBOUNCE_DELAY = 0.3  # Prevent repeated triggers within 300ms
+DEBOUNCE_DELAY = 0.3  # Prevent repeated triggers within 300ms.
 
 
 # Global keyboard controller
