@@ -13,6 +13,9 @@ from utils.encryption import save_mm_key, delete_mm_key, load_mm_key
 from config.settings import save_settings, get_default_config_path
 import shutil
 from utils.file_handling import resource_path
+import keyboard
+import threading  
+
 
 def open_settings():
     """Opens the settings dialog box with additional fields for settings."""
@@ -29,8 +32,8 @@ def open_settings():
         general_tab = ttk.Frame(tab_control)
         tab_control.add(general_tab, text="🛠 General")
 
-        dir_label = tk.Label(general_tab, text="Working Directory:")
-        dir_label.grid(row=0, column=0, padx=5, pady=5)
+        dir_label = tk.Label(general_tab, text="Templates Directory:")
+        dir_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
         dir_var = tk.StringVar(general_tab, value=config.save_directory)
         dir_entry = tk.Entry(general_tab, textvariable=dir_var, width=30)
         dir_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
@@ -75,31 +78,51 @@ def open_settings():
             else:
                 print(f"Unsupported operating system: {os.name}")
 
-        open_templates_button = tk.Button(general_tab, text="Open Templates Folder", command=open_templates_folder)
-        open_templates_button.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+        open_templates_button = tk.Button(general_tab, text="Open", command=open_templates_folder, width=12)
+        open_templates_button.grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
 
         audio_device_label = tk.Label(general_tab, text="Audio Input Device:")
-        audio_device_label.grid(row=2, column=0, padx=5, pady=5)
+        audio_device_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
         audio_device_var = tk.StringVar(general_tab, value=config.audio_device)  # Initialize with the current setting
         audio_device_dropdown = ttk.Combobox(general_tab, textvariable=audio_device_var, state="readonly", width=25)
         audio_device_dropdown['values'] = [device['name'] for device in sd.query_devices() if device['max_input_channels'] > 0]
         audio_device_dropdown.grid(row=2, column=1, padx=5, pady=5, sticky="w")
 
-        # Function to save the selected audio device
-        def save_audio_device():
+        # Secure Paste Shortcut
+        secure_paste_label = tk.Label(general_tab, text="Secure Paste Shortcut:")
+        secure_paste_label.grid(row=3, column=0, padx=5, pady=5,  sticky="w")
+        secure_paste_var = tk.StringVar(general_tab, value=config.secure_paste_shortcut)
+        secure_paste_entry = tk.Entry(general_tab, textvariable=secure_paste_var, width=30)
+        secure_paste_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+
+        # Create the "💡" button
+        def open_input_help_url():
+            webbrowser.open_new("https://pynput.readthedocs.io/en/latest/keyboard.html#pynput.keyboard.Key")
+
+        docs_button = tk.Button(general_tab, text="💡", command=open_input_help_url, width=1, height=1, font=("Arial", 12)) 
+        docs_button.grid(row=3, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
+
+
+
+        def save_general_settings():
+            config_parser = configparser.ConfigParser()
+            config_parser.read(get_default_config_path())
+            if 'DEFAULT' not in config_parser:
+                config_parser['DEFAULT'] = {}
+            config_parser['DEFAULT']['WorkingDirectory'] = dir_var.get()
+            config_parser['DEFAULT']['AudioDevice'] = audio_device_var.get()
+            config_parser['DEFAULT']['SecurePasteShortcut'] = secure_paste_var.get()
+            with open(get_default_config_path(), 'w') as configfile:
+                config_parser.write(configfile)
+            config.save_directory = dir_var.get()
             config.audio_device = audio_device_var.get()
-            save_settings()
-            update_status("Audio device saved.")
+            config.secure_paste_shortcut = secure_paste_var.get()
+            update_status("General settings saved.")
 
-        save_audio_device_button = tk.Button(general_tab, text="Save", command=save_audio_device, width=12)
-        save_audio_device_button.grid(row=2, column=2, padx=5, pady=5, sticky="w")
-
-
-
-
-
+        save_general_button = tk.Button(general_tab, text="Save Settings", command=save_general_settings, width=12)
+        save_general_button.grid(row=4, column=1, padx=5, pady=5, sticky="w")
 
 
         # --- Tab 2: Transcription Model ---
@@ -120,7 +143,7 @@ def open_settings():
         transcription_key_entry = tk.Entry(transcription_tab, textvariable=transcription_key_var, show="*", width=30, state="normal")
 
         # Initialize the entry field based on the existence of the encrypted key file
-        transcription_key_path = os.path.join(config.save_directory, "transcription_key.encrypted")
+        transcription_key_path = os.path.join(get_default_config_path(), "transcription_key.encrypted")  # Changed path
         if os.path.exists(transcription_key_path):
             transcription_key_entry.config(state="readonly")
             transcription_key_var.set("**********************************")
@@ -251,7 +274,7 @@ def open_settings():
         api_key_entry = tk.Entry(text_model_tab, textvariable=api_key_var, show="*", width=30, state="normal")  # Enable entry by default
 
         # Initialize the entry field based on the existence of the encrypted key file
-        text_key_path = os.path.join(config.save_directory, "text_key.encrypted")
+        text_key_path = os.path.join(get_default_config_path(), "text_key.encrypted") # Changed path
         if os.path.exists(text_key_path):
             api_key_entry.config(state="readonly")  # Make it readonly if the file exists
             api_key_var.set("**********************************")  # Set dummy input
@@ -407,7 +430,7 @@ def open_settings():
         mm_api_key_entry = tk.Entry(multimodal_tab, textvariable=mm_api_key_var, show="*", width=30, state="disabled")
 
         # Initialize the entry field based on the existence of the encrypted key file
-        mm_key_path = os.path.join(config.save_directory, "mm_key.encrypted")
+        mm_key_path = os.path.join(get_default_config_path(), "mm_key.encrypted")  # Changed path
         if os.path.exists(mm_key_path):
             mm_api_key_entry.config(state="readonly")
             mm_api_key_var.set("**********************************")
@@ -544,7 +567,7 @@ def close_settings_window():
 
 def toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox, mm_api_key_entry):
     """Toggles the multimodal model settings."""
-    mm_key_path = os.path.join(config.save_directory, "mm_key.encrypted")
+    mm_key_path = os.path.join(get_default_config_path(), "mm_key.encrypted")  # Changed path
     if use_multimodal_var.get():
         # Enable the combobox and mm api key entry
         multimodal_model_combobox.config(state="readonly")
