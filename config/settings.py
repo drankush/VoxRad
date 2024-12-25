@@ -20,6 +20,7 @@ def load_settings():
        and prompts for password if needed.
     """
     config_path = get_default_config_path()
+    config.config_path = config_path  # Save config path to config for usage elsewhere
     config_parser = configparser.ConfigParser()
     config_parser.read(config_path)
 
@@ -31,7 +32,8 @@ def load_settings():
         config.SELECTED_MODEL = config_parser["DEFAULT"].get("SelectedModel", "llama3.1:latest")
         config.multimodal_pref = config_parser["DEFAULT"].getboolean("MultimodalPref", False)
         config.multimodal_model = config_parser["DEFAULT"].get("MultimodalModel", None)
-        config.audio_device = config_parser['DEFAULT'].get('AudioDevice', config.audio_device)  
+        config.audio_device = config_parser['DEFAULT'].get('AudioDevice', config.audio_device)
+        config.secure_paste_shortcut = config_parser["DEFAULT"].get("SecurePasteShortcut", "ctrl+shift+v")  
     else:
         print("Warning: 'DEFAULT' section not found in settings.ini. Using default values.")
         config.save_directory = os.path.dirname(config_path)
@@ -45,10 +47,11 @@ def load_settings():
     print(f"Using Selected Model: {config.SELECTED_MODEL}")
     print(f"Using Multimodal Pref: {config.multimodal_pref}")
     print(f"Using Multimodal Model: {config.multimodal_model}")
+    print(f"Using Secure Paste Shortcut: {config.secure_paste_shortcut}")
 
     # Transcription Key Handling
-    salt_path = os.path.join(config.save_directory, ".myapp_salt")
-    transcription_key_path = os.path.join(config.save_directory, "transcription_key.encrypted")
+    salt_path = os.path.join(os.path.dirname(config.config_path), ".asr_salt")  # Changed to .asr_salt
+    transcription_key_path = os.path.join(os.path.dirname(config.config_path), "transcription_key.encrypted")
     if os.path.exists(salt_path) and os.path.exists(transcription_key_path):
         password = get_password_from_user("Enter your password to unlock the Transcription Model key:", "transcription")
         if password:
@@ -58,8 +61,8 @@ def load_settings():
         update_status("Kindly save the Transcription key in settings.")
 
     # Text Key Handling
-    salt_path = os.path.join(config.save_directory, ".text_salt") # Update salt file name
-    text_key_path = os.path.join(config.save_directory, "text_key.encrypted")
+    salt_path = os.path.join(os.path.dirname(config.config_path), ".text_salt") # Corrected line
+    text_key_path = os.path.join(os.path.dirname(config.config_path), "text_key.encrypted")# Corrected line
     if os.path.exists(salt_path) and os.path.exists(text_key_path):
         password = get_password_from_user("Enter your password to unlock the Text Model key:", "text")
         if password:
@@ -69,15 +72,15 @@ def load_settings():
         update_status("Kindly save the Text Model key in settings.")
 
     # MM Key Handling
-    salt_path = os.path.join(config.save_directory, ".mm_salt")  # Update salt file name
-    mm_key_path = os.path.join(config.save_directory, "mm_key.encrypted")
+    salt_path = os.path.join(os.path.dirname(config.config_path), ".mm_salt")  # Corrected line
+    mm_key_path = os.path.join(os.path.dirname(config.config_path), "mm_key.encrypted")# Corrected line
     if os.path.exists(salt_path) and os.path.exists(mm_key_path):
         password = get_password_from_user("Enter your password to unlock the Multimodal Model key:", "mm")
         if password:
             if not load_mm_key(mm_key_path, password):
                 messagebox.showerror("Error", "Incorrect password for Multimodal Model Key.")
     else:
-        pass  # No need to show a message here. MM is experimental.
+        pass  # No need to show a message here
 
 
 def save_settings():
@@ -91,7 +94,8 @@ def save_settings():
         "SelectedModel": config.SELECTED_MODEL,
         "MultimodalPref": config.multimodal_pref,
         "MultimodalModel": str(config.multimodal_model),  # Convert to string before saving
-        "AudioDevice": config.audio_device  # Add the audio device setting
+        "AudioDevice": config.audio_device,  # Add the audio device setting
+        "SecurePasteShortcut": config.secure_paste_shortcut 
     }
     with open(get_default_config_path(), "w") as configfile:
         config_parser.write(configfile)
