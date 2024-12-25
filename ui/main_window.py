@@ -8,8 +8,8 @@ from ui.utils import initialize_status_var, update_status, draw_straight_line
 from audio.transcriber import mm_gemini, transcribe_audio
 from utils.file_handling import resource_path
 from utils.file_handling import  on_template_select, load_templates
+from llm.secure_paste import initialize_secure_paste
 import os
-
 
 # Global variables
 recording = False
@@ -25,15 +25,17 @@ template_dropdown = None
 logo_label = None
 
 def retry_transcription():
-    """Retries the transcription using the recorded_audio.mp3 file."""
-    recorded_audio_path = os.path.join(config.save_directory, "recorded_audio.mp3")
-    if os.path.exists(recorded_audio_path):
+    """Retries the transcription using the last encrypted audio file and key."""
+    print(config.current_encrypted_mp3_path)
+    print(config.current_encryption_key)
+    if config.current_encrypted_mp3_path and config.current_encryption_key:
+        update_status("Reprocessing last recorded audio...")
         if config.multimodal_pref:
-            config.root.after(100, lambda: mm_gemini(recorded_audio_path))
+            config.root.after(100, lambda: mm_gemini(config.current_encrypted_mp3_path, config.current_encryption_key))
         else:
-            config.root.after(100, lambda: transcribe_audio(recorded_audio_path))
+            config.root.after(100, lambda: transcribe_audio(config.current_encrypted_mp3_path, config.current_encryption_key))
     else:
-        update_status("No recorded audio found to retry transcription.")
+        update_status("No previous recording found to retry.")
 
 
 def initialize_ui():
@@ -47,6 +49,9 @@ def initialize_ui():
     config.root.configure(bg='#0E1118')
     config.root.geometry("250x300")
     config.root.resizable(width=False, height=False)
+
+    # Initialize secure paste
+    initialize_secure_paste() 
 
     # Main frame
     main_frame = tk.Frame(config.root, bg='#0E1118')
@@ -135,6 +140,7 @@ def initialize_ui():
     
     # Load templates
     load_templates()
+
 
     config.root.mainloop()
 
