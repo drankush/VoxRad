@@ -81,47 +81,28 @@ def on_template_select(event=None):
                 print(f"Error loading template: {e}")
                 config.global_md_text_content = ""
 
-def move_files(old_dir, new_dir):
-    """Moves the transcription_key.encrypted file, salt file, and templates folder from the old to the new directory."""
-    files_to_move = ["transcription_key.encrypted", ".myapp_salt", "text_key.encrypted", ".text_salt"]
-    folders_to_move = ["templates", "reports"]
-    
-    for file_name in files_to_move:
-        old_path = os.path.join(old_dir, file_name)
-        new_path = os.path.join(new_dir, file_name)
-        if os.path.exists(old_path):
-            if os.path.exists(new_path):
-                if messagebox.askyesno("Confirm Overwrite", f"{file_name} already exists in the new directory. Overwrite?"):
-                    try:
-                        shutil.move(old_path, new_path)
-                        print(f"Moved {file_name} from '{old_path}' to '{new_path}'")
-                    except Exception as e:
-                        print(f"Error moving {file_name}: {e}")
-            else:
-                try:
-                    shutil.move(old_path, new_path)
-                    print(f"Moved {file_name} from '{old_path}' to '{new_path}'")
-                except Exception as e:
-                    print(f"Error moving {file_name}: {e}")
 
-    for folder_name in folders_to_move:
-        old_path = os.path.join(old_dir, folder_name)
-        new_path = os.path.join(new_dir, folder_name)
-        if os.path.exists(old_path):
-            if os.path.exists(new_path):
-                if messagebox.askyesno("Confirm Overwrite", f"{folder_name} folder already exists in the new directory. Overwrite?"):
-                    try:
-                        shutil.rmtree(new_path)
-                        shutil.move(old_path, new_path)
-                        print(f"Moved {folder_name} folder from '{old_path}' to '{new_path}'")
-                    except Exception as e:
-                        print(f"Error moving {folder_name} folder: {e}")
-            else:
+def move_files(old_dir, new_dir):
+    """Moves the templates folder from the old to the new directory."""
+    folder_name = "templates"
+    old_path = os.path.join(old_dir, folder_name)
+    new_path = os.path.join(new_dir, folder_name)
+
+    if os.path.exists(old_path):
+        if os.path.exists(new_path):
+            if messagebox.askyesno("Confirm Overwrite", f"'{folder_name}' folder already exists in the new directory. Overwrite?"):
                 try:
+                    shutil.rmtree(new_path)
                     shutil.move(old_path, new_path)
-                    print(f"Moved {folder_name} folder from '{old_path}' to '{new_path}'")
+                    print(f"Moved '{folder_name}' folder from '{old_path}' to '{new_path}'")
                 except Exception as e:
-                    print(f"Error moving {folder_name} folder: {e}")
+                    print(f"Error moving '{folder_name}' folder: {e}")
+        else:
+            try:
+                shutil.move(old_path, new_path)
+                print(f"Moved '{folder_name}' folder from '{old_path}' to '{new_path}'")
+            except Exception as e:
+                print(f"Error moving '{folder_name}' folder: {e}")
 
 def strip_markdown(text):
     """Strips markdown formatting from a given text."""
