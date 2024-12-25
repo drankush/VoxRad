@@ -14,7 +14,7 @@ class Config:
     multimodal_pref = False
     multimodal_model = None
     MM_API_KEY = None
-    audio_device = None # Audio device for recording
+    audio_device = None 
     current_encryption_key = None  # To store the key for the encrypted mp3
     current_encrypted_mp3_path = None # To store the encrypted mp3
     secure_paste_shortcut = "ctrl+shift+v"  # Default shortcut
