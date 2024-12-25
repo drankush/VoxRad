@@ -12,7 +12,7 @@
 [![Release](https://flat.badgen.net/badge/release/0.1.0-beta/blue?icon=github)](https://github.com/drankush/voxrad/releases)
 [![License](https://flat.badgen.net/badge/license/GPLv3/green?icon=github)](https://github.com/drankush/voxrad/blob/main/LICENSE)
 [![Open Issues](https://flat.badgen.net/badge/issues/open-00/orange?icon=github)](https://github.com/drankush/voxrad/issues)
-[![Closed Issues](https://flat.badgen.net/badge/issues/closed-20/red?icon=github)](https://github.com/drankush/voxrad/issues?q=is%3Aissue+is%3Aclosed)
+[![Closed Issues](https://flat.badgen.net/badge/issues/closed-22/red?icon=github)](https://github.com/drankush/voxrad/issues?q=is%3Aissue+is%3Aclosed)
 [![Python Version](https://flat.badgen.net/badge/python/3.11%20|%203.12/blue?icon=github)](#)
 
 [![Apple](https://flat.badgen.net/badge/icon/apple?icon=apple&label)](https://github.com/drankush/voxrad/releases/download/beta/VoxRad_macOS_v0.1.0-beta.zip)
