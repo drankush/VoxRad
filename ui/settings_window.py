@@ -13,8 +13,7 @@ from utils.encryption import save_mm_key, delete_mm_key, load_mm_key
 from config.settings import save_settings, get_default_config_path
 import shutil
 from utils.file_handling import resource_path
-import keyboard
-import threading  
+ 
 
 
 def open_settings():
@@ -521,7 +520,7 @@ def open_settings():
 
         about_text = """
         Application Name: VOXRAD
-        Version: v0.2.0
+        Version: v0.3.0
 
         Description:
         VOXRAD is a voice transcription application for radiologists leveraging 
