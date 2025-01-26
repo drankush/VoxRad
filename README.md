@@ -23,7 +23,7 @@
 
 # 🚀 VOXRAD 
 
-VOXRAD is a voice transcription application for radiologists leveraging voice transcription models and large language models to restructure and format reports as per predefined user instruction templates.
+VOXRAD is a voice transcription application for radiologists leveraging voice transcription and large language models to restructure and format reports as per predefined user instruction templates.
 
 **Welcome to The VOXRAD App! 🌟 🎙**
 
@@ -51,13 +51,12 @@ This application leverages the power of generative AI to efficiently transcribe 
 ### 💻 Installation 
 
 - Download the `.app` file for Mac or the `.exe` file for Windows from the [releases](https://github.com/drankush/voxrad/releases).
-- Reviewers can download from [cloud storage](https://1drv.ms/f/s!An5fb_Sh97aUhc9M46yXdNnNGqnG4g?e=AJ3tHJ), by entering password 'CPDR'.
 
 ### 🔄 Understanding Workflow
 VOXRAD uses two ways to transcribe audio to report.
 
 - Use a combination of using a transcription model to first transcribe audio and then format and restructure the transcript using instruction template.
-- Use a multimodal model to directly input the audio and instruction template to provide output.
+- Use a multimodal model to directly input the audio and instruction template to provide output (experimental).
 
 Read more about the supported models [here](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/understanding-workflow#supported-llms).
 
@@ -67,9 +66,9 @@ Read more about the supported models [here](https://voxrad.gitbook.io/voxrad/fun
 
   -  In the first Tab  🛠 General click Browse and select your desired working directory. 
 
-  -  Here your encrypted keys, templates, and last recorded audio file will be kept.
+  -  Here your templates files (predefined CoT-like systematic instructions) will be kept.
 
-- There is a Templates folder that you can open by clicking the button Open Templates Folder in the 🛠 General  tab of settings.
+  - You can open the Templates Folder by clicking the button Open  in the 🛠 General  tab of settings.
 
   - Here you can place .txt and .md template instruction files for various reports like HRCT Thorax, CECT Abdomen, etc.
 
@@ -78,7 +77,7 @@ Read more about [Customizing templates](https://voxrad.gitbook.io/voxrad/fundame
 
 ### 🔐 Managing Keys
 
-- You can encrypt keys of transcription, text and multimodal models with password and even lock and unlock them while the application is in use. The application will ask for this password every time you start the applicaiton if encrypted keys are stored in working directory.
+- You can encrypt keys of transcription, text and multimodal models with password and even lock and unlock them while the application is in use. The application will ask for this password every time you start the applicaiton if encrypted keys are stored.
 - In the "Base URL" field,  enter the base URL in OpenAI compatible format. Enter API key in the in the "API Key" field.
 - You can use any OpenAI-compatible API key and Base URL and even locally deployed models which create OpenAI compatible endpoints.
 - Click **Fetch Model** to see the available models and choose one.
@@ -106,7 +105,7 @@ Read more about managing keys, best practices and troubleshooting [here](https:/
 
 - Press **Stop ⬜️** to stop recording. Your audio will be processed.
 
-- The final formatted and structured report will be automatically posted on your clipboard. You can then directly paste (Ctrl/Cmd + V) it into your application, word processor, or PACS.
+- The final formatted and structured report will be automatically posted on your clipboard. You can then directly paste using secure paste shortcut key defined in the General Settings (in macOS) or  (Ctrl + V in windows application) it into your application, word processor, or PACS.
 
 Read detailed documentation of generating a report [here](https://voxrad.gitbook.io/voxrad/user-guide/generating-a-report).
 
