@@ -8,8 +8,7 @@
 [![FFmpeg Badge](https://img.shields.io/badge/FFmpeg-007808?logo=ffmpeg&logoColor=fff&style=for-the-badge)](https://github.com/drankush/voxrad/blob/main/docs/FFmpeg.md)
 [![GitBook Badge](https://img.shields.io/badge/GitBook-BBDDE5?logo=gitbook&logoColor=000&style=for-the-badge)](https://voxrad.gitbook.io/voxrad)
 
-
-[![Release](https://flat.badgen.net/badge/release/0.1.0-beta/blue?icon=github)](https://github.com/drankush/voxrad/releases)
+[![Release](https://img.shields.io/github/v/release/drankush/voxrad?include_prereleases&color=blue)](https://github.com/drankush/voxrad/releases)
 [![License](https://flat.badgen.net/badge/license/GPLv3/green?icon=github)](https://github.com/drankush/voxrad/blob/main/LICENSE)
 [![Python Version](https://flat.badgen.net/badge/python/3.11%20|%203.12/blue?icon=github)](#)
 
