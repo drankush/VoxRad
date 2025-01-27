@@ -18,7 +18,7 @@
 
 
 [![Apple](https://flat.badgen.net/badge/icon/apple?icon=apple&label)](https://github.com/drankush/VoxRad/releases/download/v0.3.0-beta/VoxRad_macOS_v0.3.0-beta.zip)
-[![Windows](https://flat.badgen.net/badge/icon/windows?icon=windows&label)](https://github.com/drankush/voxrad/releases/download/beta/VoxRad_winOS_v0.1.0-beta.zip)
+[![Windows](https://flat.badgen.net/badge/icon/windows?icon=windows&label)](https://github.com/drankush/VoxRad/releases/download/v0.1.0-alpha/VoxRad_winOS_v0.1.0-alpha.zip)
 
 
 </div>
