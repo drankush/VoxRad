@@ -145,7 +145,7 @@ This is a pure demonstrative application for the capabilities of AI and may not 
 - The application does not encrypt data by default; users must take additional steps to secure their data.
 - Always verify the accuracy of the transcriptions and generated reports manually.
 
-## Cite
+## 🔖 Cite
 ```
 @article{ankush_voxrad_2025,
 	title = {{VoxRad}: {Building} an open-source locally-hosted radiology reporting system},
