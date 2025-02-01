@@ -122,7 +122,7 @@ VOXRAD is a community-driven project, and we're grateful for the contributions o
 
 This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
 
-## 🧩 Third-Party Libraries:
+### 🧩 Third-Party Libraries:
 
 This application uses FFmpeg, which is licensed under the GNU General Public License (GPL) version 2 or later. For more details, please refer to the [documentation](https://github.com/drankush/voxrad/docs/FFmpeg.md/) in the repository.
 
@@ -130,7 +130,7 @@ This application uses FFmpeg, which is licensed under the GNU General Public Lic
 
 To report bugs or issues, please follow [this guide](https://github.com/drankush/voxrad/blob/main/contributing.md#reporting-bugs) on how to report bugs.
 
-## 📧 Contact 
+### 📧 Contact 
 
 For any other questions, support or appreciation, please contact [here](mailto:voxrad@drankush.com).
 
@@ -144,4 +144,26 @@ This is a pure demonstrative application for the capabilities of AI and may not 
 - The developers are not responsible for any misuse of the application or any data breaches that may occur.
 - The application does not encrypt data by default; users must take additional steps to secure their data.
 - Always verify the accuracy of the transcriptions and generated reports manually.
+
+## Cite
+```
+@article{ankush_voxrad_2025,
+	title = {{VoxRad}: {Building} an open-source locally-hosted radiology reporting system},
+	volume = {119},
+	issn = {0899-7071, 1873-4499},
+	shorttitle = {{VoxRad}},
+	url = {https://www.clinicalimaging.org/article/S0899-7071(25)00014-2/abstract},
+	doi = {10.1016/j.clinimag.2025.110414},
+	language = {English},
+	urldate = {2025-02-01},
+	journal = {Clinical Imaging},
+	author = {Ankush, Ankush},
+	month = mar,
+	year = {2025},
+	pmid = {39884167},
+	note = {Publisher: Elsevier},
+	keywords = {Artificial intelligence, Efficiency, Informatics, Natural language processing, Speech recognition software},
+}
+```
+Ankush A. (2025). VoxRad: Building an open-source locally-hosted radiology reporting system. Clinical imaging, 119, 110414. Advance online publication. https://doi.org/10.1016/j.clinimag.2025.110414 PMID:[39884167](https://pubmed.ncbi.nlm.nih.gov/39884167/)
 
