@@ -1,11 +1,14 @@
 import tkinter as tk
 import random
+from config.config import config
+
 
 status_var = None
+status_label = None # Added global status label
 waveform_timer = None
 
 def initialize_status_var(main_frame):
-    global status_var
+    global status_var, status_label
     status_var = tk.StringVar()
     status_label = tk.Label(
         main_frame,
@@ -21,11 +24,28 @@ def initialize_status_var(main_frame):
     status_var.set("Press record to start recording.✨")
 
 def update_status(message):
-    global status_var
+    """Updates the status bar with the given message."""
+    global status_var, status_label
+    if status_var is None or not isinstance(status_var, tk.StringVar):
+        print("Re-initializing status_var.")  # Debugging message
+        if config.root: # Added condition if config.root is initialized, then do the below
+            if config.root.winfo_exists(): # Verify the root exists
+                initialize_status_var(config.main_frame) # Pass main_frame as argument
+            else:
+                print("Error: config.root is not active. Unable to update status.")
+                return
+        else:
+            print("Error: config.root is not initialized. Unable to update status.")
+            return # Exit if config.root is not initialized
+
     if status_var is not None:
         status_var.set(message)
     else:
         print(f"Status update: {message}")  # Fallback if status_var is not initialized
+    
+    if config.root:
+        if config.root.winfo_exists():
+            config.root.update() # Force GUI to update immediately
 
 
 def simulate_waveform(canvas):
