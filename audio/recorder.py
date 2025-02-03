@@ -4,14 +4,14 @@ import time
 import numpy as np
 import soundfile as sf
 import os
-import sys
-import subprocess
 import tempfile
 from cryptography.fernet import Fernet
 import wave
 from config.config import config
 from audio.transcriber import transcribe_audio, mm_gemini
 from ui.utils import update_status, draw_straight_line, stop_waveform_simulation, start_waveform_simulation
+import lameenc
+
 
 # Global variables
 recording = False
@@ -159,75 +159,96 @@ def complete_stop_recording():
     else:
         print("No audio data to process.")
 
-def get_ffmpeg_path():
-    """Return the path to the bundled ffmpeg executable, platform-aware."""
-    if getattr(sys, 'frozen', False):
-        base_dir_bundled = sys._MEIPASS
-        ffmpeg_exec = 'ffmpeg.exe' if sys.platform == "win32" else 'ffmpeg'
-        ffmpeg_path = os.path.join(base_dir_bundled, 'bin', 'ffmpeg', ffmpeg_exec)
-    else:
-        base_dir_dev = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        ffmpeg_exec = 'ffmpeg.exe' if sys.platform == "win32" else 'ffmpeg'
-        ffmpeg_path = os.path.join(base_dir_dev, 'bin', 'ffmpeg', ffmpeg_exec)
 
-    if not os.path.exists(ffmpeg_path):
-        print(f"FFmpeg not found at: {ffmpeg_path}")
-        return None
-    print(f"FFmpeg found at: {ffmpeg_path}")
-    return ffmpeg_path
 
 def convert_wav_to_encrypted_mp3(wav_data, fs):
-    """Converts in-memory WAV data to an encrypted MP3 file."""
-    ffmpeg_path = get_ffmpeg_path()
-    if not ffmpeg_path:
-        print("Error: FFmpeg not found.")
-        return None, None
-
+    """
+    Converts in-memory WAV data to an encrypted MP3 file without using FFmpeg.
+    Ensures the MP3 file size is less than 25 MB by adjusting the bitrate.
+    """
+    # Generate encryption key
     key = Fernet.generate_key()
     cipher_suite = Fernet(key)
+
     temp_wav_path = None
+    temp_mp3_path = None
     temp_enc_mp3_path = None
 
     try:
+        # Step 1: Write the WAV data to a temporary .wav file
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav_file:
             with wave.open(tmp_wav_file.name, 'wb') as wf:
-                wf.setnchannels(1)
-                wf.setsampwidth(2)
-                wf.setframerate(fs)
+                wf.setnchannels(1)  # Mono audio
+                wf.setsampwidth(2)  # 16-bit audio (2 bytes per sample)
+                wf.setframerate(fs)  # Sampling rate
                 wf.writeframes((wav_data * 32767).astype(np.int16).tobytes())
             temp_wav_path = tmp_wav_file.name
 
+        # Step 2: Read the raw PCM data from the WAV file
+        with wave.open(temp_wav_path, 'rb') as wav_file:
+            num_channels = wav_file.getnchannels()
+            sample_width = wav_file.getsampwidth()
+            frame_rate = wav_file.getframerate()
+            pcm_data = wav_file.readframes(wav_file.getnframes())
+
+        # Step 3: Encode the PCM data to MP3 with bitrate adjustment
+        target_size_bytes = 25 * 1024 * 1024  # 25 MB in bytes
+        bitrate = 128  # Initial bitrate (kbps)
+
+        while True:
+            # Create a temporary MP3 file
+            with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_mp3_file:
+                temp_mp3_path = tmp_mp3_file.name
+
+            # Initialize the LAME encoder
+            encoder = lameenc.Encoder()
+            encoder.set_bit_rate(bitrate)  # Set bitrate (e.g., 128 kbps)
+            encoder.set_in_sample_rate(frame_rate)
+            encoder.set_channels(num_channels)
+            encoder.set_quality(2)  # Quality range: 0 (best) to 9 (worst)
+
+            # Encode the PCM data to MP3
+            mp3_data = encoder.encode(pcm_data)
+            mp3_data += encoder.flush()
+
+            # Write the MP3 data to the temporary file
+            with open(temp_mp3_path, 'wb') as f:
+                f.write(mp3_data)
+
+            # Check the file size
+            file_size = os.path.getsize(temp_mp3_path)
+            print(f"Conversion successful. File size: {file_size / (1024 * 1024):.2f} MB")
+
+            if file_size <= target_size_bytes:
+                break  # File size is within the limit
+            else:
+                bitrate -= 10  # Reduce bitrate and try again
+                if bitrate < 64:  # Minimum acceptable bitrate
+                    print("Warning: Unable to reduce file size below 25MB with acceptable quality.")
+                    break
+                os.remove(temp_mp3_path)  # Remove the large file before trying again
+
+        # Step 4: Encrypt the MP3 data
+        with open(temp_mp3_path, 'rb') as f:
+            mp3_data = f.read()
+        encrypted_mp3_data = cipher_suite.encrypt(mp3_data)
+
+        # Step 5: Save the encrypted MP3 data to a temporary file
         with tempfile.NamedTemporaryFile(suffix=".mp3.enc", delete=False) as tmp_enc_mp3_file:
+            tmp_enc_mp3_file.write(encrypted_mp3_data)
             temp_enc_mp3_path = tmp_enc_mp3_file.name
 
-        command = [
-            ffmpeg_path,
-            "-y",
-            "-i", temp_wav_path,
-            "-vn",
-            "-ar", str(fs),
-            "-ac", "1",
-            "-b:a", "128k",
-            "-f", "mp3",
-            "-"  # Output to stdout
-        ]
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        mp3_data, stderr = process.communicate()
-        if process.returncode == 0:
-            encrypted_mp3_data = cipher_suite.encrypt(mp3_data)
-            with open(temp_enc_mp3_path, 'wb') as f:
-                f.write(encrypted_mp3_data)
-            print(f"Encrypted MP3 saved to {temp_enc_mp3_path}")
-            return temp_enc_mp3_path, key
-        else:
-            print(f"FFmpeg conversion error: {stderr.decode()}")
-            return None, None
+        print(f"Encrypted MP3 saved to {temp_enc_mp3_path}")
+        return temp_enc_mp3_path, key
+
     except Exception as e:
         print(f"Error during conversion or encryption: {e}")
         return None, None
+
     finally:
-        if os.path.exists(temp_wav_path):
+        # Clean up temporary files
+        if temp_wav_path and os.path.exists(temp_wav_path):
             os.remove(temp_wav_path)
-
-
+        if temp_mp3_path and os.path.exists(temp_mp3_path):
+            os.remove(temp_mp3_path)
 
