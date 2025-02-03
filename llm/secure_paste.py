@@ -1,4 +1,3 @@
-import pyautogui
 import subprocess
 from cryptography.fernet import Fernet
 from config.config import config
@@ -7,6 +6,8 @@ from pynput import keyboard
 from pynput.keyboard import Controller
 import time
 import os
+import ctypes
+import time
 
 # Global variables
 pressed_keys = set()
@@ -96,6 +97,7 @@ def secure_paste_report():
     except Exception as e:
         thread_safe_update_status(f"Error during secure paste: {e}")
 
+########## FOR MACOS ##########
 
 def inject_text_with_applescript(text):
     """Injects multiline text directly into the active window using AppleScript."""
@@ -114,9 +116,29 @@ def inject_text_with_applescript(text):
     subprocess.run(["osascript", "-e", applescript], check=True)
 
 
+########## FOR WINDOWS ##########
+
+# Define necessary constants
+WM_CHAR = 0x0102
+WM_KEYDOWN = 0x0100
+WM_KEYUP = 0x0101
+VK_RETURN = 0x0D
+
 def inject_text_windows(text):
-    """Injects text directly into the active window on Windows."""
-    # Break text into lines for better control
+    """Injects text directly into the active window on Windows using ctypes."""
+    user32 = ctypes.windll.user32
+    
+    # Get the handle of the active window
+    hwnd = user32.GetForegroundWindow()
+    
+    # Send each character in the text
     for line in text.splitlines():
-        pyautogui.typewrite(line)
-        pyautogui.press("enter")  # Simulate pressing Enter after each line
+        for char in line:
+            vk_code = ord(char)  # Virtual key code for the character
+            user32.PostMessageW(hwnd, WM_CHAR, vk_code, 0)  # Send character
+            time.sleep(0.01)  # Small delay to simulate human typing
+        
+        # Send Enter key after each line
+        user32.PostMessageW(hwnd, WM_KEYDOWN, VK_RETURN, 0)  # Enter key down
+        time.sleep(0.01)
+        user32.PostMessageW(hwnd, WM_KEYUP, VK_RETURN, 0)  # Enter key up
