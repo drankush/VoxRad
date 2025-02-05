@@ -46,6 +46,14 @@ This application leverages the power of generative AI to efficiently transcribe 
 - ⚙️ Customizable templates
 - 📈 Potential to extend the application for dictating other structured notes (discharge notes, OT notes or legal paperwork)
 
+## 🏗️ Architecture
+
+<p align="center">
+<img src="images/voxrad_architecture.png" alt="VOXRAD Logo" />
+</p>
+<p align="center">
+<i>Modified figure from Ankush et al. [1]</i>
+</p>
 
 ## 🛠️ Getting Set Up
 
@@ -165,5 +173,5 @@ This is a pure demonstrative application for the capabilities of AI and may not 
 	keywords = {Artificial intelligence, Efficiency, Informatics, Natural language processing, Speech recognition software},
 }
 ```
-Ankush A. (2025). VoxRad: Building an open-source locally-hosted radiology reporting system. Clinical imaging, 119, 110414. Advance online publication. https://doi.org/10.1016/j.clinimag.2025.110414 PMID:[39884167](https://pubmed.ncbi.nlm.nih.gov/39884167/)
+[1] Ankush A. (2025). VoxRad: Building an open-source locally-hosted radiology reporting system. Clinical imaging, 119, 110414. Advance online publication. https://doi.org/10.1016/j.clinimag.2025.110414 PMID:[39884167](https://pubmed.ncbi.nlm.nih.gov/39884167/)
 
