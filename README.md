@@ -52,7 +52,7 @@ This application leverages the power of generative AI to efficiently transcribe 
 <img src="images/voxrad_architecture.png" alt="VOXRAD Logo" />
 </p>
 <p align="center">
-<i>Modified figure from Ankush et al. [1]</i>
+<i>Modified figure from Ankush et al. for upcoming v0.4.0-beta [1]</i>
 </p>
 
 ## 🛠️ Getting Set Up
@@ -69,19 +69,15 @@ VOXRAD uses two ways to transcribe audio to report.
 
 Read more about the supported models [here](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/understanding-workflow#supported-llms).
 
-### 📄 Customizing Templates
+### 📄 Customizing Templates and Guidelines
 
 - Click ⚙️ Settings button at bottom right corner of the application interface.
 
   -  In the first Tab  🛠 General click Browse and select your desired working directory. 
 
-  -  Here your templates files (predefined CoT-like systematic instructions) will be kept.
+  -  Here your templates files (predefined CoT-like systematic instructions such as HRCT_Thorax.txt, CT_Head.txt etc.) and guidelines (such as BIRADS.md, TIRADS.md, PIRADS.md etc.) will be kept.
 
-  - You can open the Templates Folder by clicking the button Open  in the 🛠 General  tab of settings.
-
-  - Here you can place .txt and .md template instruction files for various reports like HRCT Thorax, CECT Abdomen, etc.
-
-Read more about [Customizing templates](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/customizing-templates).
+Read more about [Customizing templates and guidelines](https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/customizing-templates).
 
 
 ### 🔐 Managing Keys
@@ -128,11 +124,7 @@ VOXRAD is a community-driven project, and we're grateful for the contributions o
 
 ## 📜 License 
 
-This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details.
-
-### 🧩 Third-Party Libraries:
-
-This application uses FFmpeg, which is licensed under the GNU General Public License (GPL) version 2 or later. For more details, please refer to the [documentation](https://github.com/drankush/voxrad/docs/FFmpeg.md/) in the repository.
+This project is licensed under the GPLv3 License - see the [LICENSE](LICENSE) file for details. Till v0.3.0-beta, the application uses FFmpeg, which is licensed under the GNU General Public License (GPL) version 2 or later. For more details, please refer to the [documentation](https://github.com/drankush/voxrad/docs/FFmpeg.md/) in the repository.
 
 ## 🐞 Support 
 
