@@ -52,7 +52,7 @@ This application leverages the power of generative AI to efficiently transcribe 
 <img src="images/voxrad_architecture.png" alt="VOXRAD Logo" />
 </p>
 <p align="center">
-<i>Modified figure from Ankush et al. for upcoming v0.4.0-beta [1]</i>
+<i>Modified figure from Ankush et al. for v0.4.0-beta [1]</i>
 </p>
 
 ## 🛠️ Getting Set Up
