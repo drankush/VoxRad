@@ -7,7 +7,7 @@ from ui.settings_window import open_settings
 from ui.utils import initialize_status_var, update_status, draw_straight_line
 from audio.transcriber import mm_gemini, transcribe_audio
 from utils.file_handling import resource_path
-from utils.file_handling import  on_template_select, load_templates
+from utils.file_handling import  on_template_select, load_templates, load_guidelines
 from llm.secure_paste import initialize_secure_paste
 import os
 
@@ -140,6 +140,9 @@ def initialize_ui():
     
     # Load templates
     load_templates()
+
+    # Load guidelines
+    load_guidelines()
 
 
     config.root.mainloop()
