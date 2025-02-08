@@ -25,27 +25,30 @@ def resource_path(relative_path):
 
 
 def load_templates():
-    """Loads templates from the 'templates' directory and updates dropdown."""
-    global template_options
-    template_dir = os.path.join(config.save_directory, "templates")
-    if not os.path.exists(template_dir):
-        os.makedirs(template_dir)  # Create the templates directory if it doesn't exist
+     """Loads templates from the 'templates' directory and updates dropdown."""
+     global template_options
+     template_dir = os.path.join(config.save_directory, "templates")
+     if not os.path.exists(template_dir):
+         os.makedirs(template_dir)  # Create the templates directory if it doesn't exist
+ 
 
-    # List of template files to copy. Can be expanded in future for templates to be packaged.
-    template_files_to_copy = ["HRCT_Thorax.txt"]
+     # List of template files to copy. Can be expanded in future for templates to be packaged.
+     template_files_to_copy = ["HRCT_Thorax.txt", "CECT_Abdomen.txt", "CT_Head.txt"]
+ 
 
-    # Copy specified template files from resource path to the working directory
-    for template_file in template_files_to_copy:
-        source_file = resource_path(os.path.join("templates", template_file))
-        destination_file = os.path.join(template_dir, template_file)
-        if os.path.exists(source_file) and not os.path.exists(destination_file):
-            shutil.copy2(source_file, destination_file)
-            print(f"Copied {template_file} to {destination_file}")
+     # Copy specified template files from resource path to the working directory
+     for template_file in template_files_to_copy:
+         source_file = resource_path(os.path.join("templates", template_file))
+         destination_file = os.path.join(template_dir, template_file)
+         if os.path.exists(source_file) and not os.path.exists(destination_file):
+             shutil.copy2(source_file, destination_file)
+             print(f"Copied {template_file} to {destination_file}")
+ 
 
-    template_files = [f for f in os.listdir(template_dir) if f.endswith((".txt", ".md"))]
-    template_files.sort()  # Sort the list of template files alphabetically
-    template_options = [f for f in template_files] # Store full filename with extension
-    update_template_dropdown()
+     template_files = [f for f in os.listdir(template_dir) if f.endswith((".txt", ".md"))]
+     template_files.sort()  # Sort the list of template files alphabetically
+     template_options = [f for f in template_files]  # Store full filename with extension
+     update_template_dropdown()
 
 
 def update_template_dropdown():
@@ -99,23 +102,33 @@ def move_files(old_dir, new_dir):
                 except Exception as e:
                     print(f"Error moving '{folder_name}' folder: {e}")
 
+
+def load_guidelines():  # Function to load guidelines - similar to load_templates
+     """Loads guidelines from the 'guidelines' directory."""
+     global guideline_options
+     guidelines_dir = os.path.join(config.save_directory, "guidelines")
+     if not os.path.exists(guidelines_dir):
+         os.makedirs(guidelines_dir)  # Create the guidelines directory if it doesn't exist
+ 
+
+     # List of guideline files to copy
+     guideline_files_to_copy = ["BIRADS_MAMMOGRAPHY.md", "BIRADS_USG.md", "Fleischner_Society_2017_guidelines.md", "LIRADS_(Liver).md", "PIRADS.md", "TIRADS.md"]
+ 
+
+     # Copy specified guideline files from resource path to the working directory
+     for guideline_file in guideline_files_to_copy:
+         source_file = resource_path(os.path.join("guidelines", guideline_file))
+         destination_file = os.path.join(guidelines_dir, guideline_file)
+         if os.path.exists(source_file) and not os.path.exists(destination_file):
+             shutil.copy2(source_file, destination_file)
+             print(f"Copied {guideline_file} to {destination_file}")
+ 
+
+     guideline_files = [f for f in os.listdir(guidelines_dir) if f.endswith((".md"))]  # Only .md for guidelines
+     guideline_files.sort()  # Sort alphabetically
+     guideline_options = guideline_files  # Store full guideline filenames
+
 def strip_markdown(text):
     """Strips markdown formatting from a given text."""
     text = re.sub(r'\*\*(.*?)\*\*', r'\1', text)
     return text
-
-
-def load_guidelines(): # Function to load guidelines - similar to load_templates
-    """Loads guidelines from the 'guidelines' directory."""
-    global guideline_options
-    guidelines_dir = os.path.join(config.save_directory, "guidelines")
-    if not os.path.exists(guidelines_dir):
-        os.makedirs(guidelines_dir)  # Create the guidelines directory if it doesn't exist
-
-    # No default guidelines to copy for now, can be added later if needed
-
-    guideline_files = [f for f in os.listdir(guidelines_dir) if f.endswith((".md"))] # Only .md for guidelines
-    guideline_files.sort()  # Sort alphabetically
-    guideline_options = guideline_files # Store full guideline filenames
-
-
