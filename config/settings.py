@@ -83,19 +83,20 @@ def load_settings():
         pass  # No need to show a message here
 
 
+
 def save_settings():
     """Saves settings to the config file."""
     config_parser = configparser.ConfigParser()
     config_parser["DEFAULT"] = {
-        "WorkingDirectory": config.save_directory,
-        'TranscriptionBaseURL': config.TRANSCRIPTION_BASE_URL,
-        'SelectedTranscriptionModel': config.SELECTED_TRANSCRIPTION_MODEL,
-        "TextBaseURL": config.BASE_URL,
-        "SelectedModel": config.SELECTED_MODEL,
-        "MultimodalPref": config.multimodal_pref,
-        "MultimodalModel": str(config.multimodal_model),  # Convert to string before saving
-        "AudioDevice": config.audio_device,  # Add the audio device setting
-        "SecurePasteShortcut": config.secure_paste_shortcut 
+        "WorkingDirectory": str(config.save_directory),  # Convert to string
+        'TranscriptionBaseURL': str(config.TRANSCRIPTION_BASE_URL),  # Convert to string
+        'SelectedTranscriptionModel': str(config.SELECTED_TRANSCRIPTION_MODEL),  # Convert to string
+        "TextBaseURL": str(config.BASE_URL),  # Convert to string
+        "SelectedModel": str(config.SELECTED_MODEL),  # Convert to string
+        "MultimodalPref": str(config.multimodal_pref),  # Convert to String
+        "MultimodalModel": str(config.multimodal_model),
+        "AudioDevice": str(config.audio_device),  # Convert to string
+        "SecurePasteShortcut": str(config.secure_paste_shortcut)   # Convert to string
     }
     with open(get_default_config_path(), "w") as configfile:
         config_parser.write(configfile)
