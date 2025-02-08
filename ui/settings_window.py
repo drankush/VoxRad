@@ -7,13 +7,12 @@ import webbrowser
 import sounddevice as sd
 from ui.utils import update_status
 from config.config import config
-from utils.file_handling import move_files, load_templates
+from utils.file_handling import move_files, load_templates, load_guidelines
 from utils.encryption import save_transcription_key, save_text_key, delete_transcription_key, delete_text_api_key, fetch_models, fetch_transcription_models, get_password_from_user, load_transcription_key, load_text_key
 from utils.encryption import save_mm_key, delete_mm_key, load_mm_key
 from config.settings import save_settings, get_default_config_path
 import shutil
 from utils.file_handling import resource_path
- 
 
 
 def open_settings():
@@ -23,19 +22,23 @@ def open_settings():
         config.settings_window = tk.Toplevel()
         config.settings_window.title("Settings")
 
+
         # Create Tab Control
         tab_control = ttk.Notebook(config.settings_window)
         tab_control.pack(expand=1, fill="both")
+
 
         # --- Tab 1: General ---
         general_tab = ttk.Frame(tab_control)
         tab_control.add(general_tab, text="🛠 General")
 
-        dir_label = tk.Label(general_tab, text="Templates Directory:")
+
+        dir_label = tk.Label(general_tab, text="Working Directory:")
         dir_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
         dir_var = tk.StringVar(general_tab, value=config.save_directory)
         dir_entry = tk.Entry(general_tab, textvariable=dir_var, width=30)
         dir_entry.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
 
         def browse_directory():
             print(config.template_dropdown)
@@ -44,25 +47,31 @@ def open_settings():
                 old_directory = config.save_directory
                 config.save_directory = directory
                 dir_var.set(directory)
-                save_settings()  # Save settings using self
+                save_settings()  # Save settings
                 if old_directory:
                     move_files(old_directory, config.save_directory)
-                load_templates()  # Pass template_dropdown
+                load_templates()  # Reload templates
+                load_guidelines() # Reload guidelines
+
 
         # browse_button = tk.Button(general_tab, text="Browse", command=browse_directory)
         browse_button = tk.Button(general_tab, text="Browse", command=lambda: browse_directory(), width=12)
         browse_button.grid(row=0, column=2, padx=5, pady=5)
 
 
-        def open_templates_folder():
-            templates_path = os.path.join(config.save_directory, "templates")
+        def open_working_directory():
+            """Opens the working directory in the file explorer."""
+            # templates_path = os.path.join(config.save_directory, "templates")
+            working_directory = config.save_directory
+
+
+            # Template files to copy
+            template_files_to_copy = ["HRCT_Thorax.txt", "CECT_Abdomen.txt", "CT_Head.txt"]
+            templates_path = os.path.join(working_directory, "templates")
             if not os.path.exists(templates_path):
                 os.makedirs(templates_path)
             
-            # List of template files to copy
-            template_files_to_copy = ["HRCT_Thorax.txt"]
-            
-            # Copy specified template files from resource path to the working directory
+            # Copy specified template files from resource path to the templates directory
             for template_file in template_files_to_copy:
                 source_file = resource_path(os.path.join("templates", template_file))
                 destination_file = os.path.join(templates_path, template_file)
@@ -70,24 +79,44 @@ def open_settings():
                     shutil.copy2(source_file, destination_file)
                     print(f"Copied {template_file} to {destination_file}")
 
+
+            # Guideline files to copy
+            guideline_files_to_copy = ["BIRADS_MAMMOGRAPHY.md", "BIRADS_USG.md", "Fleischner_Society_2017_guidelines.md", "LIRADS_(Liver).md", "PIRADS.md", "TIRADS.md"]
+            guidelines_path = os.path.join(working_directory, "guidelines")
+            if not os.path.exists(guidelines_path):
+                os.makedirs(guidelines_path)
+
+
+            # Copy specified guideline files from resource path to the guidelines directory
+            for guideline_file in guideline_files_to_copy:
+                source_file = resource_path(os.path.join("guidelines", guideline_file))
+                destination_file = os.path.join(guidelines_path, guideline_file)
+                if os.path.exists(source_file) and not os.path.exists(destination_file):
+                    shutil.copy2(source_file, destination_file)
+                    print(f"Copied {guideline_file} to {destination_file}")
+
+
             if os.name == 'nt':
-                os.startfile(templates_path)
+                os.startfile(working_directory)
             elif os.name == 'posix':
-                subprocess.run(['open', templates_path])
+                subprocess.run(['open', working_directory])
             else:
                 print(f"Unsupported operating system: {os.name}")
 
-        open_templates_button = tk.Button(general_tab, text="Open", command=open_templates_folder, width=12)
+
+        open_templates_button = tk.Button(general_tab, text="Open", command=open_working_directory, width=12)
         open_templates_button.grid(row=0, column=3, padx=5, pady=5, sticky="w")
 
 
         audio_device_label = tk.Label(general_tab, text="Audio Input Device:")
         audio_device_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
+
         audio_device_var = tk.StringVar(general_tab, value=config.audio_device)  # Initialize with the current setting
         audio_device_dropdown = ttk.Combobox(general_tab, textvariable=audio_device_var, state="readonly", width=25)
         audio_device_dropdown['values'] = [device['name'] for device in sd.query_devices() if device['max_input_channels'] > 0]
         audio_device_dropdown.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+
 
         # Secure Paste Shortcut
         secure_paste_label = tk.Label(general_tab, text="Secure Paste Shortcut:")
@@ -96,23 +125,23 @@ def open_settings():
         secure_paste_entry = tk.Entry(general_tab, textvariable=secure_paste_var, width=30)
         secure_paste_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
 
+
         # Create the "💡" button
         def open_input_help_url():
             webbrowser.open_new("https://pynput.readthedocs.io/en/latest/keyboard.html#pynput.keyboard.Key")
 
-        docs_button = tk.Button(general_tab, text="💡", command=open_input_help_url, width=1, height=1, font=("Arial", 12)) 
+
+        docs_button = tk.Button(general_tab, text="💡", command=open_input_help_url, width=1, height=1, font=("Arial", 12))
         docs_button.grid(row=3, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
-
-
 
         def save_general_settings():
             config_parser = configparser.ConfigParser()
             config_parser.read(get_default_config_path())
             if 'DEFAULT' not in config_parser:
                 config_parser['DEFAULT'] = {}
-            config_parser['DEFAULT']['WorkingDirectory'] = dir_var.get()
-            config_parser['DEFAULT']['AudioDevice'] = audio_device_var.get()
-            config_parser['DEFAULT']['SecurePasteShortcut'] = secure_paste_var.get()
+            config_parser['DEFAULT']['WorkingDirectory'] = str(dir_var.get())  # Convert to string
+            config_parser['DEFAULT']['AudioDevice'] = str(audio_device_var.get())  # Convert to string
+            config_parser['DEFAULT']['SecurePasteShortcut'] = str(secure_paste_var.get())  # Convert to string
             with open(get_default_config_path(), 'w') as configfile:
                 config_parser.write(configfile)
             config.save_directory = dir_var.get()
@@ -122,7 +151,6 @@ def open_settings():
 
         save_general_button = tk.Button(general_tab, text="Save Settings", command=save_general_settings, width=12)
         save_general_button.grid(row=4, column=1, padx=5, pady=5, sticky="w")
-
 
         # --- Tab 2: Transcription Model ---
         transcription_tab = ttk.Frame(tab_control)
@@ -539,10 +567,6 @@ def open_settings():
 
         License:
         GPLv3
-
-        Third-Party Libraries:
-        This application uses FFmpeg, which is licensed under the GNU GPLv2 or later. 
-        For more details, please refer to the documentation in the repository.
 
         """
         about_label = tk.Label(about_tab, text=about_text, justify="left")
