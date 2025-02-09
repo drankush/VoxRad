@@ -5,7 +5,7 @@
 <div align="center">
   
 [![Python Badge](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=fff&style=for-the-badge)](#)
-[![FFmpeg Badge](https://img.shields.io/badge/FFmpeg-007808?logo=ffmpeg&logoColor=fff&style=for-the-badge)](https://github.com/drankush/voxrad/blob/main/docs/FFmpeg.md)
+[![FFmpeg Badge](https://img.shields.io/badge/OpenAI%20API-eee?style=for-the-badge&logo=openai&logoColor=412991)]()
 [![GitBook Badge](https://img.shields.io/badge/GitBook-BBDDE5?logo=gitbook&logoColor=000&style=for-the-badge)](https://voxrad.gitbook.io/voxrad)
 
 [![Release](https://img.shields.io/github/v/release/drankush/voxrad?include_prereleases&color=blue)](https://github.com/drankush/voxrad/releases)
