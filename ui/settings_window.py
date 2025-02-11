@@ -1,7 +1,7 @@
 import os
 import configparser
 import tkinter as tk
-from tkinter import ttk, filedialog, simpledialog, messagebox
+from tkinter import ttk, filedialog, messagebox
 import subprocess
 import webbrowser
 import sounddevice as sd
@@ -14,6 +14,15 @@ from config.settings import save_settings, get_default_config_path
 import shutil
 from utils.file_handling import resource_path
 
+def get_config_dir():
+    """Helper function to get ONLY the config directory, without settings.ini"""
+    if os.name == "nt":  # Windows
+        config_dir = os.path.join(os.environ["APPDATA"], "VOXRAD")
+    else:  # Assuming macOS or Linux
+        config_dir = os.path.join(os.path.expanduser("~"), ".voxrad")
+    if not os.path.exists(config_dir):
+        os.makedirs(config_dir)
+    return config_dir
 
 def open_settings():
     """Opens the settings dialog box with additional fields for settings."""
@@ -152,6 +161,8 @@ def open_settings():
         save_general_button = tk.Button(general_tab, text="Save Settings", command=save_general_settings, width=12)
         save_general_button.grid(row=4, column=1, padx=5, pady=5, sticky="w")
 
+
+
         # --- Tab 2: Transcription Model ---
         transcription_tab = ttk.Frame(tab_control)
         tab_control.add(transcription_tab, text="🎤 Transcription Model")
@@ -167,78 +178,104 @@ def open_settings():
         transcription_key_label = tk.Label(transcription_tab, text="API Key:")
         transcription_key_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
         transcription_key_var = tk.StringVar(transcription_tab)
-        transcription_key_entry = tk.Entry(transcription_tab, textvariable=transcription_key_var, show="*", width=30, state="normal")
-
-        # Initialize the entry field based on the existence of the encrypted key file
-        transcription_key_path = os.path.join(get_default_config_path(), "transcription_key.encrypted")  # Changed path
-        if os.path.exists(transcription_key_path):
-            transcription_key_entry.config(state="readonly")
-            transcription_key_var.set("**********************************")
-            save_delete_button_state = "Delete Key"
-            lock_unlock_button_state = "normal"
-        else:
-            transcription_key_entry.config(state="normal")
-            transcription_key_var.set("")
-            save_delete_button_state = "Save Key"
-            lock_unlock_button_state = "disabled"
-
+        transcription_key_entry = tk.Entry(transcription_tab, textvariable=transcription_key_var, show="*", width=30)
         transcription_key_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        # Initialize button states and entry field
+        # Corrected path: Use get_config_dir()
+        transcription_key_path = os.path.join(get_config_dir(), "transcription_key.encrypted")
+        print(f"[DEBUG] Transcription key path: {transcription_key_path}")  # Debug: Print the path
+        transcription_key_file_exists = os.path.exists(transcription_key_path)
+
+        # Initialize in one place, then set based on conditions
+        save_delete_button = tk.Button(transcription_tab, width=12)
+        lock_unlock_button = tk.Button(transcription_tab, width=12)
+
+        def update_transcription_ui():
+            nonlocal transcription_key_file_exists
+            transcription_key_file_exists = os.path.exists(transcription_key_path)
+            print(f"[DEBUG] Transcription key file exists: {transcription_key_file_exists}")
+
+            if transcription_key_file_exists:
+                transcription_key_entry.config(state="readonly")
+                transcription_key_var.set("**********************************")
+                save_delete_button.config(text="Delete Key")
+                print(f"[DEBUG] Encrypted file exists - Setting entry to readonly, dummy input, and button to 'Delete Key'")
+                if config.TRANSCRIPTION_API_KEY:
+                    lock_unlock_button.config(text="🔒 Lock Key", state="normal")
+                    print(f"[DEBUG] API key loaded - Setting Lock/Unlock button to 'Lock Key' and enabled")
+                else:
+                    lock_unlock_button.config(text="🔓 Unlock Key", state="normal")
+                    print(f"[DEBUG] API key NOT loaded - Setting Lock/Unlock button to 'Unlock Key' and enabled")
+            else:
+                transcription_key_entry.config(state="normal")
+                transcription_key_var.set("")
+                save_delete_button.config(text="Save Key")
+                lock_unlock_button.config(text="🔓 Unlock Key", state="disabled")
+                print(f"[DEBUG] No encrypted file - Setting entry to normal and empty, Save/Delete button to 'Save Key', Lock/Unlock to disabled")
+
+            #Ensures no change to the button state, if the key is deleted but not cleared from config.TRANSCRIPTION_API_KEY.
+            if config.TRANSCRIPTION_API_KEY is None and transcription_key_file_exists:
+                 lock_unlock_button.config(state="normal")
+                 print(f"[DEBUG] API key is None and file exists - Lock/Unlock button state set to normal")
 
         def save_transcription_key_ui():
             if transcription_key_var.get().strip() == "":
                 update_status("API key cannot be empty.")
                 messagebox.showerror("Error", "API key cannot be empty.")
-                return
+                return False
 
             if save_transcription_key(transcription_key_var.get()):
-                # Update UI elements directly within the function
-                transcription_key_entry.config(state="readonly")
-                save_delete_button.config(text="Delete Key")
-                lock_unlock_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
-                config.settings_window.update_idletasks()  # Force UI update
+                print(f"[DEBUG] Transcription key saved successfully")
+                update_transcription_ui()
+                return True
+            print(f"[DEBUG] Transcription key save failed")
+            return False
 
         def delete_transcription_key_ui():
             delete_transcription_key()
-            transcription_key_entry.config(state="normal")
-            transcription_key_var.set("")
-            save_delete_button.config(text="Save Key")
-            lock_unlock_button.config(state="disabled", text="🔓 Unlock Key")  # Update button text and disable lock button
+            config.TRANSCRIPTION_API_KEY = None  # Clear the key on delete
+            print(f"[DEBUG] Transcription key deleted and config.TRANSCRIPTION_API_KEY set to None")
+            update_transcription_ui()
+
 
         def toggle_save_delete_key():
             if save_delete_button.cget("text") == "Save Key":
-                if save_transcription_key_ui():  # Call save_transcription_key_ui and check for success
-                    # Update UI elements directly within the function
-                    transcription_key_entry.config(state="readonly")
-                    save_delete_button.config(text="Delete Key")
-                    lock_unlock_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
-                    config.settings_window.update_idletasks()  # Force UI update
+                print(f"[DEBUG] Save/Delete button clicked: Save Key")
+                save_transcription_key_ui()
             else:
+                print(f"[DEBUG] Save/Delete button clicked: Delete Key")
                 delete_transcription_key_ui()
 
-        save_delete_button = tk.Button(transcription_tab, text=save_delete_button_state,
-                                    command=toggle_save_delete_key, width=12)
+        save_delete_button.config(command=toggle_save_delete_key)
         save_delete_button.grid(row=2, column=2, padx=5, pady=5)
 
         def toggle_lock_unlock_transcription_key():
             if config.TRANSCRIPTION_API_KEY is None:
+                print(f"[DEBUG] Lock/Unlock button clicked: Unlock Key")
                 password = get_password_from_user("Enter your password to unlock the Transcription Model key:", "transcription")
                 if password:
                     if load_transcription_key(password=password):
                         lock_unlock_button.config(text="🔒 Lock Key")  # Update button text
                         update_status("Transcription Model key unlocked.")
+                        print(f"[DEBUG] Transcription key unlocked - Setting Lock/Unlock to 'Lock Key'")
                     else:
                         update_status("Incorrect password for Transcription Model key.")
                         messagebox.showerror("Error", "Incorrect password for Transcription Model key.")
+                        print(f"[DEBUG] Incorrect password for transcription key")
             else:
+                print(f"[DEBUG] Lock/Unlock button clicked: Lock Key")
                 config.TRANSCRIPTION_API_KEY = None
                 lock_unlock_button.config(text="🔓 Unlock Key")  # Update button text
                 update_status("Transcription Model key locked.")
+                print(f"[DEBUG] Transcription key locked - Setting Lock/Unlock to 'Unlock Key'")
 
-        # Set initial state for lock/unlock button
-        lock_unlock_button_text = "🔒 Lock Key" if config.TRANSCRIPTION_API_KEY else "🔓 Unlock Key"
-        lock_unlock_button = tk.Button(transcription_tab, text=lock_unlock_button_text,
-                                    command=toggle_lock_unlock_transcription_key, width=12, state=lock_unlock_button_state)
+        lock_unlock_button.config(command=toggle_lock_unlock_transcription_key)
         lock_unlock_button.grid(row=2, column=3, padx=5, pady=5)
+
+        print(f"[DEBUG] Initial state - Encrypted file exists: {transcription_key_file_exists}, API key loaded: {config.TRANSCRIPTION_API_KEY is not None}")
+        update_transcription_ui()  # Call once to initialize UI
+
+
 
         transcription_fetch_models_button = tk.Button(transcription_tab, text="Fetch Models",
                                         command=lambda: fetch_transcription_models(transcription_base_url_var.get(), transcription_key_var.get(), transcription_model_combobox), width=12)
@@ -258,7 +295,7 @@ def open_settings():
         def open_docs_url():
             webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
-        docs_button = tk.Button(transcription_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
+        docs_button = tk.Button(transcription_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12))
         docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
 
         def save_all_transcription_settings():
@@ -284,6 +321,11 @@ def open_settings():
         save_transcription_settings_button = tk.Button(transcription_tab, text="Save Settings", command=save_all_transcription_settings, width=12)
         save_transcription_settings_button.grid(row=4, column=3, padx=5, pady=(160,0))
 
+
+
+
+
+
         # --- Tab 3: Text Model ---
         text_model_tab = ttk.Frame(tab_control)
         tab_control.add(text_model_tab, text="📝 Text Model")
@@ -298,86 +340,109 @@ def open_settings():
         api_key_label = tk.Label(text_model_tab, text="API Key:")
         api_key_label.grid(row=2, column=0, padx=5, pady=5, sticky="w")
         api_key_var = tk.StringVar(text_model_tab)
-        api_key_entry = tk.Entry(text_model_tab, textvariable=api_key_var, show="*", width=30, state="normal")  # Enable entry by default
-
-        # Initialize the entry field based on the existence of the encrypted key file
-        text_key_path = os.path.join(get_default_config_path(), "text_key.encrypted") # Changed path
-        if os.path.exists(text_key_path):
-            api_key_entry.config(state="readonly")  # Make it readonly if the file exists
-            api_key_var.set("**********************************")  # Set dummy input
-            save_delete_text_button_state = "Delete Key"
-            lock_unlock_text_button_state = "normal"
-        else:
-            api_key_entry.config(state="normal")  # Make it editable if the file doesn't exist
-            api_key_var.set("")  # Set blank
-            save_delete_text_button_state = "Save Key"
-            lock_unlock_text_button_state = "disabled"
-
+        api_key_entry = tk.Entry(text_model_tab, textvariable=api_key_var, show="*", width=30)
         api_key_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+
+
+        # Initialize button states
+        # Corrected path: Use get_config_dir()
+        text_key_path = os.path.join(get_config_dir(), "text_key.encrypted")
+        print(f"[DEBUG] Text key path: {text_key_path}")  # Debug
+        text_key_file_exists = os.path.exists(text_key_path)
+
+
+        # Initialize in one place, and set the attributes
+        save_delete_text_button = tk.Button(text_model_tab, width=12)
+        lock_unlock_text_button = tk.Button(text_model_tab, width=12)
+
+
+        def update_text_ui():
+            nonlocal text_key_file_exists
+            text_key_file_exists = os.path.exists(text_key_path)
+            print(f"[DEBUG] Text key file exists: {text_key_file_exists}")
+
+            if text_key_file_exists:
+                api_key_entry.config(state="readonly")
+                api_key_var.set("**********************************")
+                save_delete_text_button.config(text="Delete Key")
+                print(f"[DEBUG] Encrypted file exists - Setting entry to readonly, dummy input, and button to 'Delete Key'")
+                if config.TEXT_API_KEY:
+                    lock_unlock_text_button.config(text="🔒 Lock Key", state="normal")
+                    print(f"[DEBUG] API key loaded - Setting Lock/Unlock button to 'Lock Key' and enabled")
+                else:
+                    lock_unlock_text_button.config(text="🔓 Unlock Key", state="normal")
+                    print(f"[DEBUG] API key NOT loaded - Setting Lock/Unlock button to 'Unlock Key' and enabled")
+            else:
+                api_key_entry.config(state="normal")
+                api_key_var.set("")
+                save_delete_text_button.config(text="Save Key")
+                lock_unlock_text_button.config(text="🔓 Unlock Key", state="disabled")
+                print(f"[DEBUG] No encrypted file - Setting entry to normal and empty, Save/Delete button to 'Save Key', Lock/Unlock to disabled")
+
+            #Ensures no change to the button state, if the key is deleted but not cleared from config.TEXT_API_KEY.
+            if config.TEXT_API_KEY is None and text_key_file_exists:
+                lock_unlock_text_button.config(state="normal")
+                print(f"[DEBUG] API key is None and file exists - Lock/Unlock button state set to normal")
+
 
         def save_text_key_ui():
             if api_key_var.get().strip() == "":
                 update_status("API key cannot be empty.")
                 messagebox.showerror("Error", "API key cannot be empty.")
-                return
+                return False  # Indicate failure
 
             if save_text_key(api_key_var.get()):
-                # Update UI elements directly within the function
-                api_key_entry.config(state="readonly")
-                save_delete_text_button.config(text="Delete Key")
-                lock_unlock_text_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
-                config.settings_window.update_idletasks()  # Force UI update
+                print(f"[DEBUG] Text key saved successfully")
+                update_text_ui()
+                return True  # Indicate success
+            print(f"[DEBUG] Text key save failed")
+            return False
 
         def delete_text_key_ui():
             delete_text_api_key()
-            api_key_entry.config(state="normal")
-            api_key_var.set("")
-            save_delete_text_button.config(text="Save Key")
-            lock_unlock_text_button.config(state="disabled", text="🔓 Unlock Key")  # Update button text and disable lock button
+            config.TEXT_API_KEY = None  # Clear the key on delete.
+            print(f"[DEBUG] Text key deleted and config.TEXT_API_KEY set to None")
+            update_text_ui()
 
         def toggle_save_delete_text_key():
             if save_delete_text_button.cget("text") == "Save Key":
-                if save_text_key_ui():  # Call save_text_key_ui and check for success
-                    # Update UI elements directly within the function
-                    api_key_entry.config(state="readonly")
-                    save_delete_text_button.config(text="Delete Key")
-                    lock_unlock_text_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
-                    config.settings_window.update_idletasks()  # Force UI update
+                print(f"[DEBUG] Save/Delete button clicked: Save Key")
+                save_text_key_ui()
             else:
+                print(f"[DEBUG] Save/Delete button clicked: Delete Key")
                 delete_text_key_ui()
 
-        # Create the "💡" button
-        def open_docs_url():
-            webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
-
-        docs_button = tk.Button(text_model_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12)) 
-        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
-        
-        
-        
-        save_delete_text_button = tk.Button(text_model_tab, text=save_delete_text_button_state,
-                                            command=toggle_save_delete_text_key, width=12)
+        #Create the button
+        save_delete_text_button.config(command=toggle_save_delete_text_key)
         save_delete_text_button.grid(row=2, column=2, padx=5, pady=5)
 
         def toggle_lock_unlock_text_key():
             if config.TEXT_API_KEY is None:
+                print(f"[DEBUG] Lock/Unlock button clicked: Unlock Key")
                 password = get_password_from_user("Enter your password to unlock the Text Model key:", "text")
                 if password:
                     if load_text_key(password=password):
-                        lock_unlock_text_button.config(text="🔒 Lock Key")  # Update button text
+                        lock_unlock_text_button.config(text="🔒 Lock Key")
                         update_status("Text Model key unlocked.")
+                        print(f"[DEBUG] Text key unlocked - Setting Lock/Unlock to 'Lock Key'")
                     else:
                         update_status("Incorrect password for Text Model key.")
                         messagebox.showerror("Error", "Incorrect password for Text Model key.")
+                        print(f"[DEBUG] Incorrect password for text key")
             else:
+                print(f"[DEBUG] Lock/Unlock button clicked: Lock Key")
                 config.TEXT_API_KEY = None
-                lock_unlock_text_button.config(text="🔓 Unlock Key")  # Update button text
+                lock_unlock_text_button.config(text="🔓 Unlock Key")
                 update_status("Text Model key locked.")
+                print(f"[DEBUG] Text key locked - Setting Lock/Unlock to 'Unlock Key'")
 
-        # Set initial state for lock/unlock button
-        lock_unlock_text_button_text = "🔒 Lock Key" if config.TEXT_API_KEY else "🔓 Unlock Key"
-        lock_unlock_text_button = tk.Button(text_model_tab, text=lock_unlock_text_button_text, command=toggle_lock_unlock_text_key, width=12, state=lock_unlock_text_button_state)
+
+        lock_unlock_text_button.config(command=toggle_lock_unlock_text_key)
         lock_unlock_text_button.grid(row=2, column=3, padx=5, pady=5)
+
+        print(f"[DEBUG] Initial state - Encrypted file exists: {text_key_file_exists}, API key loaded: {config.TEXT_API_KEY is not None}")
+        update_text_ui() # Call once to initialize UI
+
 
         fetch_models_button = tk.Button(text_model_tab, text="Fetch Models",
                                         command=lambda: fetch_models(base_url_var.get(), api_key_var.get(), model_combobox), width=12)
@@ -393,6 +458,14 @@ def open_settings():
             webbrowser.open_new(url)
 
             
+        # Create the "💡" button
+        def open_docs_url():
+            webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
+
+        docs_button = tk.Button(text_model_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12))
+        docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
+
+
         def save_all_settings():
             """Saves all settings to the config file."""
             config_parser = configparser.ConfigParser()
@@ -411,126 +484,191 @@ def open_settings():
             config.BASE_URL = base_url_var.get()
             config.SELECTED_MODEL = model_combobox.get()
             update_status("Settings saved.")
-            
-            
+
+
 
         save_settings_button = tk.Button(text_model_tab, text="Save Settings", command=save_all_settings, width=12)
         save_settings_button.grid(row=4, column=3, padx=5, pady=(160,0))
 
 
-
-
-        # --- Tab 5: Multimodal Model ---
+        # --- Tab 4: Multimodal Model ---
         multimodal_tab = ttk.Frame(tab_control)
         tab_control.add(multimodal_tab, text="🤖 Multimodal Model")
 
         # Multimodal Model Settings
         use_multimodal_var = tk.BooleanVar(value=config.multimodal_pref)
-        use_multimodal_checkbox = tk.Checkbutton(multimodal_tab, text="Use multimodal model", variable=use_multimodal_var, command=lambda: toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox, mm_api_key_entry))
+        use_multimodal_checkbox = tk.Checkbutton(multimodal_tab, text="Use multimodal model", variable=use_multimodal_var)
         use_multimodal_checkbox.grid(row=0, column=0, columnspan=2, sticky="w")
 
         model_label = tk.Label(multimodal_tab, text="Select Model:")
         model_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-        multimodal_model_combobox = ttk.Combobox(multimodal_tab, values=['gemini-1.5-pro', 'gemini-1.5-flash'], state="disabled", width=20)
+        multimodal_model_combobox = ttk.Combobox(multimodal_tab, values=['gemini-1.5-pro', 'gemini-1.5-flash'], width=20)
         multimodal_model_combobox.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
 
         def save_multimodal_model(multimodal_model_combobox):
             """Saves the selected multimodal model to the settings.ini file."""
             config.multimodal_model = multimodal_model_combobox.get()
+            #Corrected:  Save to the config *file*, not just the object
+            config_parser = configparser.ConfigParser()
+            config_parser.read(get_default_config_path())
+            config_parser['DEFAULT']['multimodalmodel'] = config.multimodal_model  # Use lowercase
+            with open(get_default_config_path(), 'w') as configfile:
+                config_parser.write(configfile)
+
             save_settings()
 
-        # Bind the combobox selection event to a function that saves the selected model
+        # Bind the combobox selection event to save
         multimodal_model_combobox.bind("<<ComboboxSelected>>", lambda event: save_multimodal_model(multimodal_model_combobox))
-        
-        # Set initial value for combobox
-        if (config.multimodal_model != "None" and config.multimodal_model):
-            multimodal_model_combobox.config(state="readonly")
-            if config.multimodal_model == "gemini-1.5-pro": 
-                multimodal_model_combobox.current(0)
-            else:
-                multimodal_model_combobox.current(1)
+
 
         # MM API Key Setting
         mm_api_key_label = tk.Label(multimodal_tab, text="Multimodal API Key:")
         mm_api_key_label.grid(row=2, column=0, padx=5, pady=5)
         mm_api_key_var = tk.StringVar(multimodal_tab)
-        mm_api_key_entry = tk.Entry(multimodal_tab, textvariable=mm_api_key_var, show="*", width=30, state="disabled")
-
-        # Initialize the entry field based on the existence of the encrypted key file
-        mm_key_path = os.path.join(get_default_config_path(), "mm_key.encrypted")  # Changed path
-        if os.path.exists(mm_key_path):
-            mm_api_key_entry.config(state="readonly")
-            mm_api_key_var.set("**********************************")
-            save_delete_mm_button_state = "Delete Key"
-            lock_unlock_mm_button_state = "normal"
-        else:
-            if config.multimodal_pref == True:
-                mm_api_key_entry.config(state="normal")
-            else:
-                mm_api_key_entry.config(state="disabled")
-                mm_api_key_var.set("")
-            save_delete_mm_button_state = "Save Key"
-            lock_unlock_mm_button_state = "disabled"
-
+        mm_api_key_entry = tk.Entry(multimodal_tab, textvariable=mm_api_key_var, show="*", width=30)
         mm_api_key_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        # Use get_config_dir() for the correct path
+        mm_key_path = os.path.join(get_config_dir(), "mm_key.encrypted")
+        print(f"[DEBUG] Multimodal key path: {mm_key_path}")
+        mm_key_file_exists = os.path.exists(mm_key_path)
+
+
+        # Initialize buttons (create them first)
+        save_delete_mm_button = tk.Button(multimodal_tab, width=12)
+        lock_unlock_mm_button = tk.Button(multimodal_tab, width=12)
+
+        def update_mm_ui():
+            nonlocal mm_key_file_exists
+            mm_key_file_exists = os.path.exists(mm_key_path)
+            print(f"[DEBUG] MM key file exists: {mm_key_file_exists}")
+
+            #Update combobox
+            if use_multimodal_var.get() == True:
+                multimodal_model_combobox.config(state="readonly")
+            else:
+                multimodal_model_combobox.config(state="disabled")
+
+
+            if mm_key_file_exists:
+                mm_api_key_entry.config(state="readonly")
+                mm_api_key_var.set("**********************************")
+                save_delete_mm_button.config(text="Delete Key")
+                print(f"[DEBUG] Encrypted file exists - Setting entry to readonly, dummy input, and button to 'Delete Key'")
+
+                if config.MM_API_KEY:
+                    lock_unlock_mm_button.config(text="🔒 Lock Key", state="normal")
+                    print(f"[DEBUG] MM API key loaded - Setting Lock/Unlock button to 'Lock Key' and enabled")
+
+                else:
+                    lock_unlock_mm_button.config(text="🔓 Unlock Key", state="normal")
+                    print(f"[DEBUG] MM API key NOT loaded - Setting Lock/Unlock button to 'Unlock Key' and enabled")
+            else:
+                #mm_api_key_entry.config(state="normal") #Removed
+                if use_multimodal_var.get() == True: #Added
+                    mm_api_key_entry.config(state="normal")
+                else:
+                    mm_api_key_entry.config(state="disabled")
+                mm_api_key_var.set("")
+                save_delete_mm_button.config(text="Save Key")
+                lock_unlock_mm_button.config(text="🔓 Unlock Key", state="disabled")
+                print(f"[DEBUG] No encrypted file - Setting entry based on checkbox, Save/Delete button to 'Save Key', Lock/Unlock to disabled")
+
+            if config.MM_API_KEY is None and mm_key_file_exists:
+                 lock_unlock_mm_button.config(state="normal")
+                 print(f"[DEBUG] API key is None and file exists - Lock/Unlock button state set to normal")
+
+        def toggle_multimodal_model(var, combobox, entry):
+            """Toggles the state of the multimodal model combobox and entry."""
+            if var.get():  # Checkbox is checked
+                combobox.config(state="readonly")
+                if not os.path.exists(mm_key_path):  # Only enable if no key exists
+                    entry.config(state="normal")
+                update_status("Multimodal model enabled.")
+                print("[DEBUG] Multimodal model enabled")
+            else:  # Checkbox is unchecked
+                combobox.config(state="disabled")
+                entry.config(state="disabled") #keep disabled
+                update_status("Multimodal model disabled.")
+                print("[DEBUG] Multimodal model disabled")
+
+            # Update the config.multimodal_pref variable
+            config.multimodal_pref = var.get()
+            # Write to config file
+            config_parser = configparser.ConfigParser()
+            config_parser.read(get_default_config_path())
+            config_parser['DEFAULT']['multimodal_pref'] = str(config.multimodal_pref).lower()  # Convert to lowercase string
+            with open(get_default_config_path(), 'w') as configfile:
+                config_parser.write(configfile)
+            update_mm_ui() #Added for updating the UI
+
+
+        use_multimodal_checkbox.config(command=lambda: toggle_multimodal_model(use_multimodal_var, multimodal_model_combobox, mm_api_key_entry))
 
         def save_mm_key_ui():
             if mm_api_key_var.get().strip() == "":
                 update_status("API key cannot be empty.")
                 messagebox.showerror("Error", "API key cannot be empty.")
-                return
+                return False
 
             if save_mm_key(mm_api_key_var.get()):
-                # Update UI elements directly within the function
-                mm_api_key_entry.config(state="readonly")
-                save_delete_mm_button.config(text="Delete Key")
-                lock_unlock_mm_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
-                config.settings_window.update_idletasks()  # Force UI update
+                print(f"[DEBUG] MM key saved successfully")
+                update_mm_ui()
+                return True
+            print(f"[DEBUG] MM key save failed")
+            return False
 
         def delete_mm_key_ui():
             delete_mm_key()
-            mm_api_key_entry.config(state="normal")
-            mm_api_key_var.set("")
-            save_delete_mm_button.config(text="Save Key")
-            lock_unlock_mm_button.config(state="disabled", text="🔓 Unlock Key")  # Update button text and disable lock button
+            config.MM_API_KEY = None
+            print(f"[DEBUG] MM key deleted and config.MM_API_KEY set to None")
+            update_mm_ui()
+
 
         def toggle_save_delete_mm_key():
             if save_delete_mm_button.cget("text") == "Save Key":
-                if save_mm_key_ui():  # Call save_mm_key_ui and check for success
-                    # Update UI elements directly within the function
-                    mm_api_key_entry.config(state="readonly")
-                    save_delete_mm_button.config(text="Delete Key")
-                    lock_unlock_mm_button.config(state="normal", text="🔒 Lock Key")  # Update button text and enable lock button
-                    config.settings_window.update_idletasks()  # Force UI update
+                print(f"[DEBUG] Save/Delete MM button clicked: Save Key")
+                save_mm_key_ui()
             else:
+                print(f"[DEBUG] Save/Delete MM button clicked: Delete Key")
                 delete_mm_key_ui()
 
-        save_delete_mm_button = tk.Button(multimodal_tab, text=save_delete_mm_button_state,
-                                    command=toggle_save_delete_mm_key, width=12)
-        save_delete_mm_button.grid(row=2, column=2, padx=5, pady=5 )
+        save_delete_mm_button.config(command=toggle_save_delete_mm_key)
+        save_delete_mm_button.grid(row=2, column=2, padx=5, pady=5)
+
 
         def toggle_lock_unlock_mm_key():
             if config.MM_API_KEY is None:
+                print(f"[DEBUG] Lock/Unlock MM button clicked: Unlock Key")
                 password = get_password_from_user("Enter your password to unlock the Multimodal Model key:", "mm")
                 if password:
                     if load_mm_key(password=password):
-                        lock_unlock_mm_button.config(text="🔒 Lock Key")  # Update button text
+                        lock_unlock_mm_button.config(text="🔒 Lock Key")
                         update_status("Multimodal Model key unlocked.")
+                        print(f"[DEBUG] MM key unlocked - Setting Lock/Unlock to 'Lock Key'")
                     else:
                         update_status("Incorrect password for Multimodal Model key.")
                         messagebox.showerror("Error", "Incorrect password for Multimodal Model key.")
+                        print(f"[DEBUG] Incorrect password for MM key")
             else:
+                print(f"[DEBUG] Lock/Unlock MM button clicked: Lock Key")
                 config.MM_API_KEY = None
-                lock_unlock_mm_button.config(text="🔓 Unlock Key")  # Update button text
+                lock_unlock_mm_button.config(text="🔓 Unlock Key")
                 update_status("Multimodal Model key locked.")
+                print(f"[DEBUG] MM key locked - Setting Lock/Unlock to 'Unlock Key'")
 
-        # Set initial state for lock/unlock button
-        lock_unlock_mm_button_text = "🔒 Lock Key" if config.MM_API_KEY else "🔓 Unlock Key"
-        lock_unlock_mm_button = tk.Button(multimodal_tab, text=lock_unlock_mm_button_text,
-                                    command=toggle_lock_unlock_mm_key, width=12, state=lock_unlock_mm_button_state)
+        lock_unlock_mm_button.config(command=toggle_lock_unlock_mm_key)
         lock_unlock_mm_button.grid(row=2, column=3, padx=5, pady=5)
-
-
+        print(f"[DEBUG] Initial state - Encrypted file exists: {mm_key_file_exists}, API key loaded: {config.MM_API_KEY is not None}, Multimodal Checkbox: {use_multimodal_var.get()}")
+        update_mm_ui() #Initialise UI
+        # Set initial value for combobox
+        if (config.multimodal_model != "None" and config.multimodal_model):
+            #multimodal_model_combobox.config(state="readonly") #moved to update
+            if config.multimodal_model == "gemini-1.5-pro":
+                multimodal_model_combobox.current(0)
+            else:
+                multimodal_model_combobox.current(1)
 
 
         # --- Tab 5: Help ---
