@@ -1,4 +1,12 @@
 <p align="center">
+  <img src="https://img.shields.io/badge/PROJECT-ARCHIVED-red?style=for-the-badge&logo=github" />
+</p>
+
+This repository is no longer under active development. Development efforts have shifted to ****VOXRAD2****, a major redesign and evolution of this project. 📅 Planned Release: **Mid-2026** . This repository remains available for reference and historical purposes.
+
+-------
+
+<p align="center">
   <img src="images/voxrad_logo.jpg" alt="VOXRAD Logo" />
 </p>
 
