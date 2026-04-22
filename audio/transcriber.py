@@ -1,36 +1,34 @@
 from openai import OpenAI
 from faster_whisper import WhisperModel
 import re
+import logging
 from config.config import config
+from config.logging_config import get_logger
+from config.constants import PLATFORM_WINDOWS, MAX_AUDIO_SIZE_MB
 from ui.utils import update_status
 from utils.file_handling import strip_markdown
+from utils.crypto_utils import decrypt_audio_file, cleanup_temp_file, encrypt_and_store_report
 from llm.format import format_text
 import os
 from datetime import datetime
 import google.generativeai as genai
 from cryptography.fernet import Fernet
-import tempfile
+
+logger = get_logger(__name__)
 
 def transcribe_audio(encrypted_mp3_path, decryption_key):
     """Transcribes the audio from an encrypted MP3 file using OpenAI's API."""
     if not encrypted_mp3_path or not decryption_key:
-        print("Error: Encrypted MP3 path or decryption key missing.")
+        logger.error("Encrypted MP3 path or decryption key missing.")
         update_status("Error: Could not process audio.")
         return
 
     if getattr(config, 'ASR_BACKEND', 'api') == "local":
         return transcribe_audio_local(encrypted_mp3_path, decryption_key)
 
-    cipher_suite = Fernet(decryption_key)
     decrypted_mp3_path = None
     try:
-        with open(encrypted_mp3_path, "rb") as encrypted_file:
-            encrypted_data = encrypted_file.read()
-        decrypted_data = cipher_suite.decrypt(encrypted_data)
-
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_decrypted_file:
-            tmp_decrypted_file.write(decrypted_data)
-            decrypted_mp3_path = tmp_decrypted_file.name
+        decrypted_mp3_path = decrypt_audio_file(encrypted_mp3_path, decryption_key, ".mp3")
 
         client = OpenAI(api_key=config.TRANSCRIPTION_API_KEY, base_url=config.TRANSCRIPTION_BASE_URL)
 
@@ -56,97 +54,61 @@ def transcribe_audio(encrypted_mp3_path, decryption_key):
             formatted_text = format_text(transcription)
             stripped_text = strip_markdown(formatted_text)
 
-            # Encrypt the report and store it in config
-            report_key = Fernet.generate_key()
-            report_cipher = Fernet(report_key)
-            encrypted_report = report_cipher.encrypt(stripped_text.encode()).decode()
-            config.current_encrypted_report = encrypted_report
-            config.current_report_encryption_key = report_key.decode()
-
-            if os.name == "nt":
-                update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
-            else:
-                update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
+            encrypt_and_store_report(stripped_text)
+            update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
 
     except Exception as e:
+        logger.error(f"Error decrypting or transcribing audio: {e}", exc_info=True)
         update_status(f"Error decrypting or transcribing audio: {e}")
-        print(f"Error details: {e}")
     finally:
-        if decrypted_mp3_path and os.path.exists(decrypted_mp3_path):
-            os.remove(decrypted_mp3_path)
+        cleanup_temp_file(decrypted_mp3_path)
 
 def transcribe_audio_local(encrypted_mp3_path, decryption_key):
     """Transcribes the audio locally using faster-whisper."""
-    cipher_suite = Fernet(decryption_key)
     decrypted_mp3_path = None
     try:
-        with open(encrypted_mp3_path, "rb") as encrypted_file:
-            encrypted_data = encrypted_file.read()
-        decrypted_data = cipher_suite.decrypt(encrypted_data)
-
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_decrypted_file:
-            tmp_decrypted_file.write(decrypted_data)
-            decrypted_mp3_path = tmp_decrypted_file.name
+        decrypted_mp3_path = decrypt_audio_file(encrypted_mp3_path, decryption_key, ".mp3")
 
         update_status(f"Loading local model ({config.WHISPER_MODEL_SIZE})... ⏳")
-        # Initialize model
-        # Using GPU if available, else CPU
-        device = "cuda" if os.getenv("CUDA_VISIBLE_DEVICES") != "" else "cpu"
-        # Force cpu if no nvidia-smi found previously? No, I checked and it's there.
-        # But to be safe, we can use "auto".
         model = WhisperModel(
-            config.WHISPER_MODEL_SIZE, 
-            device="auto", 
+            config.WHISPER_MODEL_SIZE,
+            device="auto",
             compute_type=config.WHISPER_QUANTIZATION
         )
 
         update_status("Transcribing locally...📝")
         segments, info = model.transcribe(
-            decrypted_mp3_path, 
-            beam_size=5, 
+            decrypted_mp3_path,
+            beam_size=5,
             language=config.WHISPER_LANGUAGE
         )
-        
+
         transcription = "".join([segment.text for segment in segments])
-        
+
         update_status("Performing AI analysis.🤖")
         formatted_text = format_text(transcription)
         stripped_text = strip_markdown(formatted_text)
 
-        # Encrypt the report and store it in config
-        report_key = Fernet.generate_key()
-        report_cipher = Fernet(report_key)
-        encrypted_report = report_cipher.encrypt(stripped_text.encode()).decode()
-        config.current_encrypted_report = encrypted_report
-        config.current_report_encryption_key = report_key.decode()
-
+        encrypt_and_store_report(stripped_text)
         update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
         return stripped_text
 
     except Exception as e:
+        logger.error(f"Error in local transcription: {e}", exc_info=True)
         update_status(f"Error in local transcription: {e}")
-        print(f"Error details: {e}")
     finally:
-        if decrypted_mp3_path and os.path.exists(decrypted_mp3_path):
-            os.remove(decrypted_mp3_path)
+        cleanup_temp_file(decrypted_mp3_path)
 
 def mm_gemini(encrypted_mp3_path, decryption_key):
     """Generates text from an encrypted audio file using the multimodal Gemini model."""
     if not encrypted_mp3_path or not decryption_key:
-        print("Error: Encrypted MP3 path or decryption key missing.")
+        logger.error("Encrypted MP3 path or decryption key missing.")
         update_status("Error: Could not process audio.")
         return
 
-    cipher_suite = Fernet(decryption_key)
     decrypted_mp3_path = None
     try:
-        with open(encrypted_mp3_path, "rb") as encrypted_file:
-            encrypted_data = encrypted_file.read()
-        decrypted_data = cipher_suite.decrypt(encrypted_data)
-
-        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_decrypted_file:
-            tmp_decrypted_file.write(decrypted_data)
-            decrypted_mp3_path = tmp_decrypted_file.name
+        decrypted_mp3_path = decrypt_audio_file(encrypted_mp3_path, decryption_key, ".mp3")
 
         update_status("Performing AI analysis.🤖")
         genai.configure(api_key=config.MM_API_KEY)
@@ -160,29 +122,19 @@ This is the report template format as chosen by the user:
         response = model.generate_content([prompt, audio_file])
         if response.text:
             stripped_text = strip_markdown(response.text)
-
-            # Encrypt the report and store it in config
-            report_key = Fernet.generate_key()
-            report_cipher = Fernet(report_key)
-            encrypted_report = report_cipher.encrypt(stripped_text.encode()).decode()
-            config.current_encrypted_report = encrypted_report
-            config.current_report_encryption_key = report_key.decode()
-
-            if os.name == "nt":
-                update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
-            else:
-                update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
+            encrypt_and_store_report(stripped_text)
+            update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
             return stripped_text
         else:
+            logger.warning("No text returned by the multimodal model.")
             update_status("No text returned by the multimodal model.")
             return None
     except Exception as e:
+        logger.error(f"Failed to generate summary: {e}", exc_info=True)
         update_status(f"Failed to generate summary. Error: {str(e)}")
-        print(f"Error details: {e}")
         return None
     finally:
-        if decrypted_mp3_path and os.path.exists(decrypted_mp3_path):
-            os.remove(decrypted_mp3_path)
+        cleanup_temp_file(decrypted_mp3_path)
 
 def save_report(report_text):
     """Saves the transcribed report to a file in the reports directory."""
@@ -197,5 +149,5 @@ def save_report(report_text):
     with open(report_filepath, "w") as report_file:
         report_file.write(report_text)
 
-    print(f"Report saved to {report_filepath}")
+    logger.info(f"Report saved to {report_filepath}")
 

@@ -1,12 +1,17 @@
 from openai import OpenAI
+import logging
 from ui.utils import update_status
 from config.config import config
+from config.logging_config import get_logger
+from config.constants import MAX_RETRY_ATTEMPTS
 import os
 import json
 import re
 from typing import Tuple, Optional, List
-import configparser 
+import configparser
 from json.decoder import JSONDecodeError
+
+logger = get_logger(__name__)
 
 
 def _get_save_directory():
@@ -46,8 +51,7 @@ def _get_file_list(directory: str, ext: str) -> List[str]:
         os.makedirs(directory) # Create directory if it doesn't exist
     return [f for f in os.listdir(directory) if f.endswith(ext)]
 
-import re
-def _select_template(transcript: str, attempt: int = 1) -> Optional[str]:
+def _select_template(transcript: str) -> Optional[str]:
     """Use function calling to select template name, with fallback to JSON chat completion"""
     client = OpenAI(api_key=config.TEXT_API_KEY, base_url=config.BASE_URL)
     templates = _get_file_list(TEMPLATES_DIR, ".txt") + _get_file_list(TEMPLATES_DIR, ".md")
@@ -70,75 +74,65 @@ def _select_template(transcript: str, attempt: int = 1) -> Optional[str]:
             }
         }
     }]
-    
-    if attempt > 3:
-        print("Max attempts reached for template selection.")
-        return None
-    
-    use_tool_call = True # Variable to decide whether tool call should happen
-    
-    if attempt > 1: # Only tool call on first attempt
-       use_tool_call = False # If not first attempt, use json fallback logic
 
-    if use_tool_call: # tool call logic
+    for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
+        use_tool_call = (attempt == 1)
+
+        if use_tool_call:
+            try:
+                logger.debug(f"Attempt {attempt}: Trying tool call for template selection")
+                response = client.chat.completions.create(
+                    model=config.SELECTED_MODEL,
+                    messages=[{"role": "user", "content": transcript}],
+                    tools=tools,
+                    tool_choice={"type": "function", "function": {"name": "select_template"}}
+                )
+
+                if response.choices and response.choices[0].message.tool_calls:
+                    tool_calls = response.choices[0].message.tool_calls
+                    if tool_calls:
+                        args = json.loads(tool_calls[0].function.arguments)
+                        logger.info(f"Attempt {attempt}: Tool call succeeded, selected template: {args['template']}")
+                        return args["template"]
+            except Exception as e:
+                logger.debug(f"Attempt {attempt}: Tool call attempt failed: {e}")
+
         try:
-            print(f"Attempt {attempt}: Trying tool call for template selection") # Debug log
+            prompt = f"Select the most appropriate template from the following list: {templates} to structure this transcript:\n\n{transcript}.\n\nYour output should ONLY be a JSON object with the following structure: {{\"template\": \"selected_template_filename\"}}. Ensure a valid JSON is generated"
+            logger.debug(f"Attempt {attempt}: Trying JSON fallback for template selection")
             response = client.chat.completions.create(
                 model=config.SELECTED_MODEL,
-                messages=[{"role": "user", "content": transcript}],
-                tools=tools,
-                tool_choice={"type": "function", "function": {"name": "select_template"}}
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1
             )
-        
-            if response.choices and response.choices[0].message.tool_calls:
-                tool_calls = response.choices[0].message.tool_calls
-                if tool_calls:
-                    args = json.loads(tool_calls[0].function.arguments)
-                    print(f"Attempt {attempt}: Tool call succeeded, selected template: {args['template']}") # Debug log
-                    return args["template"]
-        except Exception as e:
-             print(f"Attempt {attempt}: Tool call attempt failed: {e}")# Debug log
-    
-    # Fallback to JSON chat completion
-    try:
-        prompt = f"Select the most appropriate template from the following list: {templates} to structure this transcript:\n\n{transcript}.\n\nYour output should ONLY be a JSON object with the following structure: {{\"template\": \"selected_template_filename\"}}. Ensure a valid JSON is generated"
-        print (f"Attempt {attempt}: Trying JSON fallback for template selection")
-        response = client.chat.completions.create(
-            model=config.SELECTED_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature = 0.1
-            )
-        print(f"Attempt {attempt}: JSON fallback response received: {response}" ) # Debug log
-        if response.choices and response.choices[0].message.content:
-            content = response.choices[0].message.content.strip()
-            
-            # Attempt to extract JSON from markdown code block, else parse if it is not code block
-            match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', content)
-            if match:
-                json_string = match.group(1).strip()
-            else:
-                json_string = content # Try to parse content if it is not a code block
 
-            try:
-                json_output = json.loads(json_string)
-                if "template" in json_output and json_output["template"] in templates:
-                    print(f"Attempt {attempt}: JSON fallback success, selected template: {json_output['template']}") # Debug log
-                    return json_output["template"]
+            if response.choices and response.choices[0].message.content:
+                content = response.choices[0].message.content.strip()
+
+                match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', content)
+                if match:
+                    json_string = match.group(1).strip()
                 else:
-                    print(f"Attempt {attempt}: Invalid JSON format or template not found in JSON fallback")
-                    return _select_template(transcript, attempt + 1) # Recursive retry
-            except JSONDecodeError as e:
-                print (f"Attempt {attempt}: Invalid JSON received from model: {e}")
-                return _select_template(transcript, attempt + 1) #Recursive retry
-                
-        else:
-          print(f"Attempt {attempt}: No response content received during JSON fallback")
-          return _select_template(transcript, attempt + 1) # Recursive retry
+                    json_string = content
 
-    except Exception as e:
-        print(f"Attempt {attempt}: Error in JSON fallback for template selection: {e}")
-        update_status("Unable to select template using AI. Choose a template manually or change transcription model.")
-        return None
+                try:
+                    json_output = json.loads(json_string)
+                    if "template" in json_output and json_output["template"] in templates:
+                        logger.info(f"Attempt {attempt}: JSON fallback success, selected template: {json_output['template']}")
+                        return json_output["template"]
+                    else:
+                        logger.debug(f"Attempt {attempt}: Invalid JSON format or template not found in JSON fallback")
+                except JSONDecodeError as e:
+                    logger.debug(f"Attempt {attempt}: Invalid JSON received from model: {e}")
+            else:
+                logger.debug(f"Attempt {attempt}: No response content received during JSON fallback")
+
+        except Exception as e:
+            logger.error(f"Attempt {attempt}: Error in JSON fallback for template selection: {e}")
+
+    logger.warning("Max attempts reached for template selection.")
+    update_status("Unable to select template using AI. Choose a template manually or change transcription model.")
+    return None
 
 def _get_template_content(template_name: str) -> Optional[str]:
     """Helper function to get template content from filename"""
@@ -147,7 +141,7 @@ def _get_template_content(template_name: str) -> Optional[str]:
         with open(template_path, "r") as f:
             return f.read()
     except FileNotFoundError:
-        print(f"Template file not found: {template_path}")
+        logger.error(f"Template file not found: {template_path}")
         return None
 
 
@@ -198,21 +192,16 @@ This is the report template formattemplate:\n{template_content}
             return None
 
     except Exception as e:
-        print(f"Error in _create_structured_report: {e}")
+        logger.error(f"Error in _create_structured_report: {e}")
         update_status("Error generating structured report.")
         return "Error generating structured report."
 
 
 
-def _analyze_recommendation_needs(structured_report: str, attempt: int = 1) -> Tuple[bool, List[str]]:
+def _analyze_recommendation_needs(structured_report: str) -> Tuple[bool, List[str]]:
     """Determine if recommendations are needed and select from AVAILABLE guidelines using tool-use, with fallback to JSON chat completion."""
     client = OpenAI(api_key=config.TEXT_API_KEY, base_url=config.BASE_URL)
     guidelines = _get_file_list(GUIDELINES_DIR, ".md")
-    
-    if attempt > 3:
-        print("Max attempts reached for recommendation analysis.")
-        return False, []
-
 
     tools = [{
         "type": "function",
@@ -240,84 +229,77 @@ def _analyze_recommendation_needs(structured_report: str, attempt: int = 1) -> T
         }
     }]
 
-    use_tool_call = True # Variable to decide whether tool call should happen
-    
-    if attempt > 1: # Only tool call on first attempt
-       use_tool_call = False # If not first attempt, use json fallback logic
+    for attempt in range(1, MAX_RETRY_ATTEMPTS + 1):
+        use_tool_call = (attempt == 1)
 
-    if use_tool_call: # tool call logic
+        if use_tool_call:
+            try:
+                logger.debug(f"Attempt {attempt}: Trying tool call for recommendation analysis")
+                response = client.chat.completions.create(
+                    model=config.SELECTED_MODEL,
+                    messages=[{
+                        "role": "user",
+                        "content": f"Analyze this structured report:\n{structured_report}\n\nAvailable guidelines: {', '.join(guidelines)}"
+                    }],
+                    tools=tools,
+                    tool_choice={"type": "function", "function": {"name": "recommendation_analysis"}}
+                )
+                if response.choices and response.choices[0].message.tool_calls:
+                    args = json.loads(response.choices[0].message.tool_calls[0].function.arguments)
+                    logger.info(f"Attempt {attempt}: Tool call success, recommendations_needed={args['recommendations_needed']}")
+                    return args["recommendations_needed"], args["selected_guidelines"]
+            except Exception as e:
+                logger.debug(f"Attempt {attempt}: Tool call attempt failed: {e}")
+
         try:
-            print(f"Attempt {attempt}: Trying tool call for recommendation analysis")
+            prompt = f"Analyze the following structured report:\n{structured_report}\n\nAvailable guidelines: {', '.join(guidelines)}\n\nBased on this analysis, determine if clinical recommendations are needed, and if so, select appropriate guidelines. Your output should ONLY be a JSON object with this structure: {{\"recommendations_needed\": true/false, \"selected_guidelines\": [\"filename1\", \"filename2\", ...] or null if no guideline is selected }}. If no recommendations are needed, then the selected_guidelines key should be null. Ensure a valid JSON is generated"
+            logger.debug(f"Attempt {attempt}: Trying JSON fallback for recommendation analysis")
             response = client.chat.completions.create(
                 model=config.SELECTED_MODEL,
-                messages=[{
-                    "role": "user",
-                    "content": f"Analyze this structured report:\n{structured_report}\n\nAvailable guidelines: {', '.join(guidelines)}"
-                }],
-                tools=tools,
-                tool_choice={"type": "function", "function": {"name": "recommendation_analysis"}}
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.1
             )
-            if response.choices and response.choices[0].message.tool_calls:
-                args = json.loads(response.choices[0].message.tool_calls[0].function.arguments)
-                print(f"Attempt {attempt}: Tool call success for recommendation analysis, recommendations_needed:{args['recommendations_needed']}, selected_guidelines:{args['selected_guidelines']}")
-                return args["recommendations_needed"], args["selected_guidelines"]
-        except Exception as e:
-           print(f"Attempt {attempt}: Tool call attempt failed in _analyze_recommendation_needs: {e}")
-           update_status("Error analyzing recommendations.🤖")
 
+            if response.choices and response.choices[0].message.content:
+                content = response.choices[0].message.content.strip()
 
-    # Fallback to JSON chat completion
-    try:
-        prompt = f"Analyze the following structured report:\n{structured_report}\n\nAvailable guidelines: {', '.join(guidelines)}\n\nBased on this analysis, determine if clinical recommendations are needed, and if so, select appropriate guidelines. Your output should ONLY be a JSON object with this structure: {{\"recommendations_needed\": true/false, \"selected_guidelines\": [\"filename1\", \"filename2\", ...] or null if no guideline is selected }}. If no recommendations are needed, then the selected_guidelines key should be null. Ensure a valid JSON is generated"
-        print (f"Attempt {attempt}: Trying JSON fallback for recommendation analysis")
-        response = client.chat.completions.create(
-            model=config.SELECTED_MODEL,
-            messages=[{"role": "user", "content": prompt}],
-             temperature = 0.1
-        )
-
-        if response.choices and response.choices[0].message.content:
-            content = response.choices[0].message.content.strip()
-
-            # Attempt to extract JSON from markdown code block, else parse if it is not code block
-            match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', content)
-            if match:
-                json_string = match.group(1).strip()
-            else:
-                json_string = content # Try to parse content if it is not a code block
-
-            try:
-                json_output = json.loads(json_string)
-                if "recommendations_needed" in json_output and "selected_guidelines" in json_output:
-                    recommendations_needed = json_output["recommendations_needed"]
-                    selected_guidelines = json_output["selected_guidelines"]
-                    
-                    if recommendations_needed and selected_guidelines is None:
-                       print ("Recommendations needed is True but guidelines is None. This is not expected")
-                       return _analyze_recommendation_needs(structured_report, attempt + 1) # Recursive retry
-                    
-                    if selected_guidelines is not None: # If any guidelines were selected
-                       for guide in selected_guidelines:
-                         if guide not in guidelines:
-                            print (f"Attempt {attempt}: Invalid guideline selected by model")
-                            return _analyze_recommendation_needs(structured_report, attempt + 1) # Recursive retry
-                    print (f"Attempt {attempt}: JSON fallback success for recommendation analysis, recommendations_needed: {recommendations_needed}, selected_guidelines:{selected_guidelines}")
-                    return recommendations_needed, selected_guidelines if selected_guidelines else [] # Return [] if None (meaning no guide is selected)
+                match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', content)
+                if match:
+                    json_string = match.group(1).strip()
                 else:
-                    print(f"Attempt {attempt}: Invalid JSON format in JSON fallback for recommendation analysis")
-                    return _analyze_recommendation_needs(structured_report, attempt + 1) # Recursive retry
+                    json_string = content
 
-            except JSONDecodeError as e:
-                 print(f"Attempt {attempt}: Invalid JSON received in JSON fallback for recommendation analysis: {e}")
-                 return _analyze_recommendation_needs(structured_report, attempt + 1) # Recursive retry
-        else:
-            print(f"Attempt {attempt}: No response content received during JSON fallback for recommendation analysis")
-            return _analyze_recommendation_needs(structured_report, attempt + 1)  # Recursive retry
+                try:
+                    json_output = json.loads(json_string)
+                    if "recommendations_needed" in json_output and "selected_guidelines" in json_output:
+                        recommendations_needed = json_output["recommendations_needed"]
+                        selected_guidelines = json_output["selected_guidelines"]
 
-    except Exception as e:
-         print(f"Attempt {attempt}: Error in JSON fallback for _analyze_recommendation_needs: {e}")
-         update_status("Error analyzing recommendations.🤖")
-         return False, []
+                        if recommendations_needed and selected_guidelines is None:
+                            logger.debug(f"Attempt {attempt}: Recommendations needed but guidelines is None")
+                            continue
+
+                        if selected_guidelines is not None:
+                            for guide in selected_guidelines:
+                                if guide not in guidelines:
+                                    logger.debug(f"Attempt {attempt}: Invalid guideline selected by model")
+                                    continue
+
+                        logger.info(f"Attempt {attempt}: JSON fallback success, recommendations_needed={recommendations_needed}")
+                        return recommendations_needed, selected_guidelines if selected_guidelines else []
+                    else:
+                        logger.debug(f"Attempt {attempt}: Invalid JSON format")
+                except JSONDecodeError as e:
+                    logger.debug(f"Attempt {attempt}: Invalid JSON received: {e}")
+            else:
+                logger.debug(f"Attempt {attempt}: No response content received")
+
+        except Exception as e:
+            logger.error(f"Attempt {attempt}: Error in JSON fallback: {e}")
+
+    logger.warning("Max attempts reached for recommendation analysis.")
+    update_status("Error analyzing recommendations.🤖")
+    return False, []
 
 
 def _validate_guidelines(potential_guides: List[str]) -> Tuple[List[str], List[str]]:
@@ -344,9 +326,9 @@ def _generate_recommendations(structured_report: str, guides: List[str]) -> Opti
         try:
             with open(os.path.join(GUIDELINES_DIR, guide), "r") as f:
                 guideline_texts.append(f.read())
-                print(f"Guideline added: {guide}")
+                logger.debug(f"Guideline added: {guide}")
         except FileNotFoundError:
-            print(f"Guideline file not found: {os.path.join(GUIDELINES_DIR, guide)}")
+            logger.warning(f"Guideline file not found: {os.path.join(GUIDELINES_DIR, guide)}")
             continue
 
     newline_separator = '\n\n'
@@ -370,45 +352,45 @@ def _generate_recommendations(structured_report: str, guides: List[str]) -> Opti
             return None
 
     except Exception as e:
-        print(f"Error in _generate_recommendations: {e}")
+        logger.error(f"Error in _generate_recommendations: {e}")
         update_status("Error generating recommendations.")
         return "Error generating recommendations."
 
 
 def format_text(text):
     """Formats the given text, incorporates template selection, and generates recommendations if needed."""
-    print("Triggered format_text function.")
+    logger.debug("Triggered format_text function.")
     try:
         if not config.global_md_text_content:
             update_status("Selecting template using AI...🤖")
-            print("Selecting template using AI...🤖")
+            logger.debug("Selecting template using AI...🤖")
             template_name = _select_template(text)
             if template_name:
                 update_status(f"Template selected: {template_name}")
-                print(f"Template selected: {template_name}")
+                logger.info(f"Template selected: {template_name}")
                 template_content = _get_template_content(template_name)
                 if template_content:
                     report_content = _create_structured_report(text, template_content)
                 else:
                     update_status("Error loading template content. Using default formatting.")
-                    print("Error loading template content. Using default formatting.")
+                    logger.error("Error loading template content. Using default formatting.")
                     return _basic_format(text)
             else:
                 update_status("Failed to automatically select a template. Using default formatting.")
-                print("Failed to automatically select a template. Using default formatting.")
+                logger.error("Failed to automatically select a template. Using default formatting.")
                 return _basic_format(text)
         else:
             # Use user-selected template content directly from config
             template_content = config.global_md_text_content
             update_status("Using user-selected template.")
-            print("Using user-selected template.")
+            logger.debug("Using user-selected template.")
             report_content = _create_structured_report(text, template_content)
 
         if report_content:
             # print(f"Structured Report Only:\n\n{report_content}") # Debug log
             needs_recommendations, selected_guidelines = _analyze_recommendation_needs(report_content)
             update_status(f"Needs recommendations: {needs_recommendations}, Selected guidelines: {', '.join(selected_guidelines)}")
-            print(f"Needs recommendations: {needs_recommendations}, Selected guidelines: {', '.join(selected_guidelines)}")
+            logger.info(f"Needs recommendations: {needs_recommendations}, Selected guidelines: {', '.join(selected_guidelines)}")
             if needs_recommendations:
                 # _validate_guidelines could be added here if needed
                 valid_guidelines, missing_guidelines = _validate_guidelines(selected_guidelines)
@@ -425,12 +407,12 @@ def format_text(text):
             # print (f"Formatted Full Report without <think> tags and with recommmendations:\n\n{report_content}") # Debug log
 
             update_status("Performing AI analysis.🤖")
-            print("Performing AI analysis.🤖")
+            logger.debug("Performing AI analysis.🤖")
             return report_content
 
         else:
             update_status("No content generated by the Model.")
-            print("No content generated by the Model.")
+            logger.warning("No content generated by the Model.")
             return None
 
     except Exception as e:
@@ -440,5 +422,5 @@ def format_text(text):
 
 def _basic_format(text):
     """Basic formatting as fallback if template selection fails."""
-    print("Basic formatting as fallback.")
+    logger.debug("Basic formatting as fallback.")
     return f"Formatted Report:\n\n{text}"
