@@ -1,4 +1,5 @@
 from openai import OpenAI
+from faster_whisper import WhisperModel
 import re
 from config.config import config
 from ui.utils import update_status
@@ -16,6 +17,9 @@ def transcribe_audio(encrypted_mp3_path, decryption_key):
         print("Error: Encrypted MP3 path or decryption key missing.")
         update_status("Error: Could not process audio.")
         return
+
+    if getattr(config, 'ASR_BACKEND', 'api') == "local":
+        return transcribe_audio_local(encrypted_mp3_path, decryption_key)
 
     cipher_suite = Fernet(decryption_key)
     decrypted_mp3_path = None
@@ -66,6 +70,61 @@ def transcribe_audio(encrypted_mp3_path, decryption_key):
 
     except Exception as e:
         update_status(f"Error decrypting or transcribing audio: {e}")
+        print(f"Error details: {e}")
+    finally:
+        if decrypted_mp3_path and os.path.exists(decrypted_mp3_path):
+            os.remove(decrypted_mp3_path)
+
+def transcribe_audio_local(encrypted_mp3_path, decryption_key):
+    """Transcribes the audio locally using faster-whisper."""
+    cipher_suite = Fernet(decryption_key)
+    decrypted_mp3_path = None
+    try:
+        with open(encrypted_mp3_path, "rb") as encrypted_file:
+            encrypted_data = encrypted_file.read()
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
+
+        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as tmp_decrypted_file:
+            tmp_decrypted_file.write(decrypted_data)
+            decrypted_mp3_path = tmp_decrypted_file.name
+
+        update_status(f"Loading local model ({config.WHISPER_MODEL_SIZE})... ⏳")
+        # Initialize model
+        # Using GPU if available, else CPU
+        device = "cuda" if os.getenv("CUDA_VISIBLE_DEVICES") != "" else "cpu"
+        # Force cpu if no nvidia-smi found previously? No, I checked and it's there.
+        # But to be safe, we can use "auto".
+        model = WhisperModel(
+            config.WHISPER_MODEL_SIZE, 
+            device="auto", 
+            compute_type=config.WHISPER_QUANTIZATION
+        )
+
+        update_status("Transcribing locally...📝")
+        segments, info = model.transcribe(
+            decrypted_mp3_path, 
+            beam_size=5, 
+            language=config.WHISPER_LANGUAGE
+        )
+        
+        transcription = "".join([segment.text for segment in segments])
+        
+        update_status("Performing AI analysis.🤖")
+        formatted_text = format_text(transcription)
+        stripped_text = strip_markdown(formatted_text)
+
+        # Encrypt the report and store it in config
+        report_key = Fernet.generate_key()
+        report_cipher = Fernet(report_key)
+        encrypted_report = report_cipher.encrypt(stripped_text.encode()).decode()
+        config.current_encrypted_report = encrypted_report
+        config.current_report_encryption_key = report_key.decode()
+
+        update_status(f"Report generated. Use {config.secure_paste_shortcut} to securely paste.✨")
+        return stripped_text
+
+    except Exception as e:
+        update_status(f"Error in local transcription: {e}")
         print(f"Error details: {e}")
     finally:
         if decrypted_mp3_path and os.path.exists(decrypted_mp3_path):

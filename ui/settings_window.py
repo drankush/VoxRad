@@ -167,8 +167,15 @@ def open_settings():
         transcription_tab = ttk.Frame(tab_control)
         tab_control.add(transcription_tab, text="🎤 Transcription Model")
 
+        # Backend Selection
+        backend_label = tk.Label(transcription_tab, text="ASR Backend:")
+        backend_label.grid(row=0, column=0, padx=5, pady=5, sticky="w")
+        backend_var = tk.StringVar(transcription_tab, value=config.ASR_BACKEND)
+        backend_dropdown = ttk.Combobox(transcription_tab, textvariable=backend_var, values=["api", "local"], state="readonly", width=12)
+        backend_dropdown.grid(row=0, column=1, padx=5, pady=5, sticky="w")
+
         # BaseURL Settings
-        transcription_base_url_label = tk.Label(transcription_tab, text="Base URL:")
+        transcription_base_url_label = tk.Label(transcription_tab, text="Base URL (API):")
         transcription_base_url_label.grid(row=1, column=0, padx=5, pady=5, sticky="w")
         transcription_base_url_var = tk.StringVar(transcription_tab, value=config.TRANSCRIPTION_BASE_URL)
         transcription_base_url_entry = tk.Entry(transcription_tab, textvariable=transcription_base_url_var, width=30)
@@ -295,19 +302,64 @@ def open_settings():
         def open_docs_url():
             webbrowser.open_new("https://voxrad.gitbook.io/voxrad/fundamentals/getting-set-up/managing-keys")
 
-        docs_button = tk.Button(transcription_tab, text="💡", command=open_docs_url, width=1, height=1, font=("Arial", 12))
         docs_button.grid(row=1, column=2, padx=5, pady=(0, 0), sticky="w")  # Position above the save button
+
+        # Local Whisper Settings
+        whisper_label = tk.Label(transcription_tab, text="--- Local Whisper Settings ---", font=("Arial", 10, "bold"))
+        whisper_label.grid(row=5, column=0, columnspan=2, padx=5, pady=(10, 5), sticky="w")
+
+        whisper_size_label = tk.Label(transcription_tab, text="Model Size:")
+        whisper_size_label.grid(row=6, column=0, padx=5, pady=2, sticky="w")
+        whisper_size_var = tk.StringVar(transcription_tab, value=config.WHISPER_MODEL_SIZE)
+        whisper_size_dropdown = ttk.Combobox(transcription_tab, textvariable=whisper_size_var, values=["tiny", "base", "small", "medium", "large-v3"], state="readonly", width=12)
+        whisper_size_dropdown.grid(row=6, column=1, padx=5, pady=2, sticky="w")
+
+        whisper_quant_label = tk.Label(transcription_tab, text="Quantization:")
+        whisper_quant_label.grid(row=7, column=0, padx=5, pady=2, sticky="w")
+        whisper_quant_var = tk.StringVar(transcription_tab, value=config.WHISPER_QUANTIZATION)
+        whisper_quant_dropdown = ttk.Combobox(transcription_tab, textvariable=whisper_quant_var, values=["int8", "int8_float16", "float16"], state="readonly", width=12)
+        whisper_quant_dropdown.grid(row=7, column=1, padx=5, pady=2, sticky="w")
+
+        whisper_lang_label = tk.Label(transcription_tab, text="Language:")
+        whisper_lang_label.grid(row=8, column=0, padx=5, pady=2, sticky="w")
+        whisper_lang_var = tk.StringVar(transcription_tab, value=config.WHISPER_LANGUAGE)
+        whisper_lang_entry = tk.Entry(transcription_tab, textvariable=whisper_lang_var, width=12)
+        whisper_lang_entry.grid(row=8, column=1, padx=5, pady=2, sticky="w")
+
+        def toggle_asr_fields(event=None):
+            if backend_var.get() == "local":
+                transcription_base_url_entry.config(state="disabled")
+                transcription_key_entry.config(state="disabled")
+                transcription_fetch_models_button.config(state="disabled")
+                transcription_model_combobox.config(state="disabled")
+                whisper_size_dropdown.config(state="readonly")
+                whisper_quant_dropdown.config(state="readonly")
+                whisper_lang_entry.config(state="normal")
+            else:
+                transcription_base_url_entry.config(state="normal")
+                transcription_key_entry.config(state="normal")
+                transcription_fetch_models_button.config(state="normal")
+                transcription_model_combobox.config(state="readonly")
+                whisper_size_dropdown.config(state="disabled")
+                whisper_quant_dropdown.config(state="disabled")
+                whisper_lang_entry.config(state="disabled")
+
+        backend_dropdown.bind("<<ComboboxSelected>>", toggle_asr_fields)
+        toggle_asr_fields() # Initial state
 
         def save_all_transcription_settings():
             """Saves all transcription settings to the config file."""
             config_parser = configparser.ConfigParser()
             config_parser.read(get_default_config_path())  # Read existing settings
 
-            # Append new settings to existing settings
             config_parser['DEFAULT'].update({
                 'WorkingDirectory': dir_var.get(),
                 'TranscriptionBaseURL': transcription_base_url_var.get(),
-                'SelectedTranscriptionModel': transcription_model_combobox.get()
+                'SelectedTranscriptionModel': transcription_model_combobox.get(),
+                'ASRBackend': backend_var.get(),
+                'WhisperModelSize': whisper_size_var.get(),
+                'WhisperQuantization': whisper_quant_var.get(),
+                'WhisperLanguage': whisper_lang_var.get()
             })
 
             with open(get_default_config_path(), 'w') as configfile:
@@ -315,7 +367,11 @@ def open_settings():
             config.save_directory = dir_var.get()
             config.TRANSCRIPTION_BASE_URL = transcription_base_url_var.get()
             config.SELECTED_TRANSCRIPTION_MODEL = transcription_model_combobox.get()
-            update_status("Settings saved.")
+            config.ASR_BACKEND = backend_var.get()
+            config.WHISPER_MODEL_SIZE = whisper_size_var.get()
+            config.WHISPER_QUANTIZATION = whisper_quant_var.get()
+            config.WHISPER_LANGUAGE = whisper_lang_var.get()
+            update_status("Transcription settings saved.")
 
 
         save_transcription_settings_button = tk.Button(transcription_tab, text="Save Settings", command=save_all_transcription_settings, width=12)

@@ -34,6 +34,10 @@ def load_settings():
         config.multimodal_model = config_parser["DEFAULT"].get("MultimodalModel", None)
         config.audio_device = config_parser['DEFAULT'].get('AudioDevice', config.audio_device)
         config.secure_paste_shortcut = config_parser["DEFAULT"].get("SecurePasteShortcut", "ctrl+shift+v")  
+        config.ASR_BACKEND = config_parser["DEFAULT"].get("ASRBackend", "api")
+        config.WHISPER_MODEL_SIZE = config_parser["DEFAULT"].get("WhisperModelSize", "small")
+        config.WHISPER_QUANTIZATION = config_parser["DEFAULT"].get("WhisperQuantization", "int8")
+        config.WHISPER_LANGUAGE = config_parser["DEFAULT"].get("WhisperLanguage", "pt")
     else:
         print("Warning: 'DEFAULT' section not found in settings.ini. Using default values.")
         config.save_directory = os.path.dirname(config_path)
@@ -96,7 +100,11 @@ def save_settings():
         "MultimodalPref": str(config.multimodal_pref),  # Convert to String
         "MultimodalModel": str(config.multimodal_model),
         "AudioDevice": str(config.audio_device),  # Convert to string
-        "SecurePasteShortcut": str(config.secure_paste_shortcut)   # Convert to string
+        "SecurePasteShortcut": str(config.secure_paste_shortcut),   # Convert to string
+        "ASRBackend": str(config.ASR_BACKEND),
+        "WhisperModelSize": str(config.WHISPER_MODEL_SIZE),
+        "WhisperQuantization": str(config.WHISPER_QUANTIZATION),
+        "WhisperLanguage": str(config.WHISPER_LANGUAGE)
     }
     with open(get_default_config_path(), "w") as configfile:
         config_parser.write(configfile)

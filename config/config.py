@@ -21,5 +21,11 @@ class Config:
     current_encrypted_report = None  # To store the encrypted report
     current_report_encryption_key = None # To store the key for the encrypted report 
 
+    # Local ASR Settings
+    ASR_BACKEND = "api"  # "api" or "local"
+    WHISPER_MODEL_SIZE = "small"
+    WHISPER_QUANTIZATION = "int8"
+    WHISPER_LANGUAGE = "pt"
+
 config = Config()
 

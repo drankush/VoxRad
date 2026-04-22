@@ -38,11 +38,6 @@ pydantic_core==2.27.2
 PyGetWindow==0.0.9
 PyMsgBox==1.0.9
 pynput==1.7.7
-pyobjc-core==11.0
-pyobjc-framework-ApplicationServices==11.0
-pyobjc-framework-Cocoa==11.0
-pyobjc-framework-CoreText==11.0
-pyobjc-framework-Quartz==11.0
 pyparsing==3.2.1
 pyperclip==1.9.0
 PyRect==0.2.0
@@ -60,3 +55,5 @@ tqdm==4.67.1
 typing_extensions==4.12.2
 uritemplate==4.1.1
 urllib3==2.3.0
+faster-whisper
+ollama

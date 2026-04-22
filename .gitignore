@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Configuration
+settings.ini
+config/settings.ini
+
+# User data
+*.wav
+*.mp3
+*.m4a
+*.log
+*.txt
+!requirements.txt
+!README.md
+
+# OS generated files
+.DS_Store
+Thumbs.db
