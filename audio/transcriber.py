@@ -1,5 +1,4 @@
 from openai import OpenAI
-from faster_whisper import WhisperModel
 import re
 import logging
 from config.config import config
@@ -9,6 +8,7 @@ from ui.utils import update_status
 from utils.file_handling import strip_markdown
 from utils.crypto_utils import decrypt_audio_file, cleanup_temp_file, encrypt_and_store_report
 from llm.format import format_text
+from audio.whisper_model_manager import get_whisper_model
 import os
 from datetime import datetime
 import google.generativeai as genai
@@ -70,11 +70,7 @@ def transcribe_audio_local(encrypted_mp3_path, decryption_key):
         decrypted_mp3_path = decrypt_audio_file(encrypted_mp3_path, decryption_key, ".mp3")
 
         update_status(f"Loading local model ({config.WHISPER_MODEL_SIZE})... ⏳")
-        model = WhisperModel(
-            config.WHISPER_MODEL_SIZE,
-            device="auto",
-            compute_type=config.WHISPER_QUANTIZATION
-        )
+        model = get_whisper_model()
 
         update_status("Transcribing locally...📝")
         segments, info = model.transcribe(
