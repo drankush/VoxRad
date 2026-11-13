@@ -2,7 +2,7 @@
   <img src="https://img.shields.io/badge/PROJECT-ARCHIVED-red?style=for-the-badge&logo=github" />
 </p>
 
-This repository is no longer under active development. Development efforts have shifted to ****VOXRAD2****, a major redesign and evolution of this project. 📅 Planned Release: **Mid-2026** . This repository remains available for reference and historical purposes.
+This repository is archived. Development efforts have shifted to ****VOXRAD2****, a major redesign and evolution of this project, where I have finally overcome many limitations of VoxRad 1. 📅 Planned Release: **Mid-2027** . 
 
 -------
 
